@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="270" viewBox="0 0 1200 270">
+  <defs>
+    <linearGradient id="lean" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#00e5ff"/>
+      <stop offset="0.6" stop-color="#39ff88"/>
+      <stop offset="1" stop-color="#ffb300"/>
+    </linearGradient>
+    <linearGradient id="bezel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3a4357"/>
+      <stop offset="1" stop-color="#161b26"/>
+    </linearGradient>
+    <g id="screen">
+      <circle r="70" fill="url(#bezel)"/>
+      <circle r="63" fill="#05070b"/>
+    </g>
+  </defs>
+  <rect width="1200" height="270" rx="24" fill="#0b1019"/>
+
+  <g font-family="Segoe UI, Helvetica, Arial, sans-serif" text-anchor="middle">
+    <!-- 1 Piega -->
+    <g transform="translate(102 108)">
+      <use href="#screen"/>
+      <path d="M -41.6 -24 A 48 48 0 0 1 41.6 -24" fill="none" stroke="#1a2232" stroke-width="9" stroke-linecap="round"/>
+      <path d="M 0 -48 A 48 48 0 0 1 32.1 -35.7" fill="none" stroke="url(#lean)" stroke-width="9" stroke-linecap="round"/>
+      <text y="14" font-size="30" font-weight="800" fill="#fff">42°</text>
+      <text y="32" font-size="9" letter-spacing="2" fill="#8a93a6">PIEGA DX</text>
+    </g>
+    <!-- 2 G-G -->
+    <g transform="translate(268 108)">
+      <use href="#screen"/>
+      <circle r="44" fill="none" stroke="#035fff" stroke-opacity="0.6"/>
+      <circle r="28" fill="none" stroke="#2a3346"/>
+      <line x1="-48" x2="48" stroke="#2a3346"/><line y1="-48" y2="48" stroke="#2a3346"/>
+      <polygon points="0,-40 26,-26 34,4 18,30 0,24 -20,28 -34,2 -24,-28" fill="#ffb300" fill-opacity="0.12" stroke="#ffb300" stroke-opacity="0.7"/>
+      <circle cx="14" cy="-20" r="6" fill="#00e5ff"/>
+    </g>
+    <!-- 3 Sessione -->
+    <g transform="translate(434 108)">
+      <use href="#screen"/>
+      <text y="-26" font-size="9" letter-spacing="1" fill="#8a93a6">PIEGA MAX</text>
+      <text x="-20" y="0" font-size="20" font-weight="800" fill="#00e5ff">47°</text>
+      <text x="22" y="0" font-size="20" font-weight="800" fill="#ffb300">51°</text>
+      <text y="22" font-size="9" letter-spacing="1" fill="#8a93a6">FRENATA MAX</text>
+      <text y="42" font-size="17" font-weight="800" fill="#ff3b3b">1.18 G</text>
+    </g>
+    <!-- 4 Navigatore -->
+    <g transform="translate(600 108)">
+      <use href="#screen"/>
+      <path d="M -8 34 L -8 -2 Q -8 -14 4 -14 L 16 -14" fill="none" stroke="#fff" stroke-width="9" stroke-linejoin="round"/>
+      <path d="M 14 -27 L 32 -14 L 14 -1 Z" fill="#fff"/>
+      <text x="-20" y="-24" font-size="16" font-weight="800" fill="#ffb300" text-anchor="end">200</text>
+      <text x="-20" y="-12" font-size="9" fill="#8a93a6" text-anchor="end">m</text>
+      <text y="52" font-size="9" fill="#c9d1e0">Via Roma</text>
+    </g>
+    <!-- 5 Viaggio -->
+    <g transform="translate(766 108)">
+      <use href="#screen"/>
+      <text y="4" font-size="36" font-weight="800" fill="#fff">87</text>
+      <text y="20" font-size="10" fill="#8a93a6">km/h</text>
+      <text x="-20" y="42" font-size="11" font-weight="800" fill="#00e5ff">142 km</text>
+      <text x="22" y="42" font-size="11" font-weight="800" fill="#ffb300">58 km</text>
+    </g>
+    <!-- 6 0-100 -->
+    <g transform="translate(932 108)">
+      <use href="#screen"/>
+      <text y="6" font-size="32" font-weight="800" fill="#39ff88">4.82</text>
+      <text y="22" font-size="10" font-weight="700" fill="#39ff88">NUOVO RECORD!</text>
+      <rect x="-40" y="32" width="80" height="6" rx="3" fill="#39ff88"/>
+    </g>
+    <!-- 7 Impostazioni -->
+    <g transform="translate(1098 108)">
+      <use href="#screen"/>
+      <rect x="-40" y="-40" width="38" height="13" rx="6.5" fill="#035fff"/>
+      <rect x="2" y="-40" width="38" height="13" rx="6.5" fill="#121822"/>
+      <text x="-21" y="-30" font-size="7" font-weight="700" fill="#fff">MOTO</text>
+      <text x="21" y="-30" font-size="7" font-weight="700" fill="#8a93a6">DISPLAY</text>
+      <rect x="-46" y="-21" width="92" height="17" rx="5" fill="#121822"/>
+      <rect x="-46" y="0" width="92" height="17" rx="5" fill="#3a2a10" stroke="#ffb300"/>
+      <rect x="-42" y="21" width="84" height="17" rx="5" fill="#121822"/>
+      <text y="-9" font-size="8" font-weight="700" fill="#fff">Zero piega</text>
+      <text y="12" font-size="8" font-weight="700" fill="#ffb300">tocca di nuovo</text>
+      <text y="33" font-size="8" font-weight="700" fill="#fff">Azzera record</text>
+    </g>
+
+    <g font-size="15" font-weight="700" fill="#ffffff">
+      <text x="102" y="210">Piega</text>
+      <text x="268" y="210">Forze G</text>
+      <text x="434" y="210">Sessione</text>
+      <text x="600" y="210">Navigatore</text>
+      <text x="766" y="210">Viaggio</text>
+      <text x="932" y="210">0-100 km/h</text>
+      <text x="1098" y="210">Impostazioni</text>
+    </g>
+    <g font-size="11" fill="#7f8aa3">
+      <text x="102" y="230">stile MotoGP</text>
+      <text x="268" y="230">cerchio di attrito</text>
+      <text x="434" y="230">i tuoi record</text>
+      <text x="600" y="230">Google Maps</text>
+      <text x="766" y="230">GPS e manutenzione</text>
+      <text x="932" y="230">cronometro</text>
+      <text x="1098" y="230">dal display</text>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,39 @@
+name: Voglio OmniRide
+description: Richiedi informazioni su kit, dispositivi pronti o licenze
+title: "[Acquisto] "
+labels: ["acquisto"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Grazie per l'interesse! Non scrivere qui dati personali (telefono, indirizzo): ti rispondo nei commenti e ci accordiamo per il contatto privato.
+  - type: dropdown
+    id: cosa
+    attributes:
+      label: Cosa ti interessa?
+      options:
+        - Sistema completo (centralina + display)
+        - Solo centralina (uso con l'app)
+        - Display aggiuntivo
+        - Licenza per uso commerciale
+        - Altro
+    validations:
+      required: true
+  - type: dropdown
+    id: display
+    attributes:
+      label: Display preferito
+      options:
+        - Tondo 1.28"
+        - Rettangolare 1.69"
+        - Entrambi
+        - Non so ancora
+  - type: input
+    id: moto
+    attributes:
+      label: Moto (marca, modello, anno)
+  - type: textarea
+    id: note
+    attributes:
+      label: Note
+      description: Uso su strada o pista, domande, tempistiche...
