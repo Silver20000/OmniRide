@@ -4,6 +4,14 @@ Tutte le modifiche e le evoluzioni del firmware, delle app e dell'hardware di Om
 
 ---
 
+## [4.0.1] - 2026-10-01
+### Novita'
+- **App scaricabile**: l'APK di OmniRide si trova nelle release di questa pagina (`omniride.apk`), insieme ai firmware.
+- **Web app**: la pagina Impostazioni non compare piu' sotto tutte le altre pagine.
+- L'app installata da qui si aggiorna con le versioni successive senza doverla disinstallare.
+
+---
+
 ## [4.0.0] - 2026-10-01
 ### Nuovo nome: OmniRide
 - Progetto, app, web app, display ("Benvenuto su OmniRide"), nome Bluetooth della centralina ("OmniRide <modello>"), documentazione e repository GitHub rinominati **OmniRide**.
