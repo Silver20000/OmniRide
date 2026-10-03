@@ -1,0 +1,21 @@
+{
+  "version": "4.1.0",
+  "date": "2026-10-03",
+  "boards": {
+    "master": {
+      "file": "omniride-master.bin",
+      "size": 1372688,
+      "md5": "9d1b3bdaad883181d16a9d578479794c"
+    },
+    "round": {
+      "file": "omniride-round.bin",
+      "size": 1113136,
+      "md5": "5e17a54cbb616acd8d125cb763c8150e"
+    },
+    "rect": {
+      "file": "omniride-rect.bin",
+      "size": 1125920,
+      "md5": "b4f70aa71e7ad1ec4e97335fcd83c2d3"
+    }
+  }
+}
