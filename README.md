@@ -44,6 +44,7 @@
 
 | Versione | Cosa arriva |
 |---|---|
+| **4.1** | 📲 **App più pro**: aggiornamenti automatici, configurazione guidata, cruscotto grafico, scheda del giro da condividere, inglese, km/miglia, diagnostica · 🌐 web app uguale all'app |
 | **4.0** | 🏷️ **Nuovo nome: OmniRide** (prima RideLink): stessa centralina, stessi display, impostazioni conservate |
 | **3.6** | 🔋 **Standby più leggero, solo con un aggiornamento**: controlli sempre più radi a moto ferma e GPS del telefono spento a moto lontana (facoltativo col GY-87: risveglio dal sensore con un filo in più) |
 | **3.5** | 🏍️🏍️ **In gruppo**: più moto OmniRide vicine senza interferenze. Ogni display è abbinato alla sua centralina, il telefono ricorda la sua moto. |

@@ -4,6 +4,25 @@ Tutte le modifiche e le evoluzioni del firmware, delle app e dell'hardware di Om
 
 ---
 
+## [4.1.0] - 2026-10-03
+### App
+- **Aggiornamenti automatici dell'app**: all'apertura OmniRide controlla se c'è una versione nuova, la scarica e la installa con un tocco (poi propone di aggiornare centralina e display).
+- **Configurazione guidata** al primo avvio: permessi spiegati uno per uno, collegamento, nome della moto, contatto SOS, zero piega (si può rifare da Altro).
+- **Cruscotto dal vivo** nella scheda Moto: arco della piega con i picchi, cerchio delle forze G con la scia, barra del gas.
+- **Scheda del giro da condividere**: immagine con tracciato colorato per piega e i numeri principali, pronta per WhatsApp e Instagram.
+- **Inglese** (segue la lingua del telefono) e testi rifiniti con gli accenti; **km o miglia** a scelta.
+- **Invia diagnostica**: un file per l'assistenza, con numeri di telefono e posizioni oscurati.
+- APK più leggero (2 MB invece di 7), Android 15.
+
+### Display e centralina
+- Con le miglia scelte nell'app, le pagine Viaggio e Navigatore mostrano mph e mi.
+
+### Web app
+- **Stessa struttura e stesso aspetto dell'app**: schede Moto, SOS, Giri, Altro con la barra in basso e lo stato del collegamento in alto.
+- Corretto: alcune impostazioni comparivano sotto tutte le pagine.
+
+---
+
 ## [4.0.1] - 2026-10-01
 ### Novita'
 - **App scaricabile**: l'APK di OmniRide si trova nelle release di questa pagina (`omniride.apk`), insieme ai firmware.
