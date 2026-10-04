@@ -1,0 +1,3007 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0a0e17">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>OmniRide - Telemetria & GPS</title>
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Leaflet Map CSS & JS (100% Free & Open Source) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <style>
+        :root {
+            --bg-main: #0a0e17;
+            --bg-card: #121824;
+            --bg-card-glass: rgba(18, 24, 36, 0.88);
+            --border-card: #1f2a3e;
+            --text-main: #f0f4f8;
+            --text-dim: #7e8c9f;
+            --brand-blue: #0066ff;
+            --brand-cyan: #00d4ff;
+            --accent-green: #00e676;
+            --accent-red: #ff1744;
+            --accent-orange: #ff9100;
+            --accent-yellow: #ffd600;
+            --accent-purple: #b388ff;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: radial-gradient(circle at 50% 0%, #162032 0%, var(--bg-main) 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 10px 12px 24px 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 10px; }
+        
+        /* Header */
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--bg-card-glass); backdrop-filter: blur(10px);
+            border: 1px solid var(--border-card); border-radius: 14px; padding: 8px 12px;
+        }
+        .logo-box { display: flex; align-items: center; gap: 8px; }
+        .logo-badge {
+            background: linear-gradient(135deg, var(--brand-blue), var(--brand-cyan));
+            color: white; font-weight: 900; font-size: 11px; padding: 3px 7px; border-radius: 6px;
+        }
+        .app-title { font-size: 14px; font-weight: 700; }
+        
+        .header-actions { display: flex; align-items: center; gap: 6px; }
+        .conn-btn {
+            background: linear-gradient(135deg, var(--brand-blue), #0047ba);
+            color: white; border: none; border-radius: 10px; padding: 6px 10px; font-size: 11px;
+            font-weight: 700; display: flex; align-items: center; gap: 5px; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 102, 255, 0.35);
+        }
+        .conn-btn.connected { background: linear-gradient(135deg, #00c853, #009624); box-shadow: 0 4px 12px rgba(0, 200, 83, 0.35); }
+        .conn-btn.recording { background: linear-gradient(135deg, var(--accent-red), #b71c1c); animation: pulse-red 1.5s infinite; }
+        
+        .gps-status-badge {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-card);
+            border-radius: 8px; padding: 5px 8px; font-size: 10px; font-weight: 700;
+            display: flex; align-items: center; gap: 4px; color: var(--text-dim);
+        }
+        .gps-status-badge.active { color: var(--accent-green); border-color: rgba(0, 230, 118, 0.3); }
+        .gps-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-dim); }
+        .gps-status-badge.active .gps-dot { background: var(--accent-green); box-shadow: 0 0 6px var(--accent-green); }
+
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(255, 23, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 23, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 23, 68, 0); }
+        }
+
+        /* Navigation Tabs */
+        .tab-bar {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            background: var(--bg-card-glass);
+            border: 1px solid var(--border-card);
+            border-radius: 12px;
+            padding: 4px;
+            gap: 3px;
+        }
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            font-weight: 700;
+            font-size: 10px;
+            padding: 7px 1px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .tab-btn.active {
+            background: rgba(0, 102, 255, 0.25);
+            color: var(--brand-cyan);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+
+        /* Compass Page Styles */
+        .compass-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px 12px;
+            position: relative;
+            overflow: hidden;
+        }
+        .compass-rose-container {
+            width: 250px;
+            height: 250px;
+            position: relative;
+            margin: 8px 0 12px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .compass-dial-svg {
+            width: 100%;
+            height: 100%;
+            transition: transform 0.12s cubic-bezier(0.1, 0.9, 0.2, 1);
+            transform-origin: 50% 50%;
+        }
+        .compass-center-display {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            background: rgba(11, 16, 26, 0.92);
+            border: 2px solid rgba(0, 212, 255, 0.4);
+            box-shadow: 0 0 24px rgba(0, 102, 255, 0.25), inset 0 0 15px rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 5;
+            pointer-events: none;
+        }
+        .compass-deg-val {
+            font-size: 28px;
+            font-weight: 900;
+            color: #ffffff;
+            line-height: 1;
+            letter-spacing: -0.5px;
+            font-variant-numeric: tabular-nums;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+        .compass-cardinal-val {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--brand-cyan);
+            margin-top: 3px;
+            letter-spacing: 1.5px;
+        }
+        .compass-status-pill {
+            margin-top: 4px;
+            font-size: 8px;
+            font-weight: 800;
+            padding: 2px 7px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: rgba(0, 230, 118, 0.15);
+            color: var(--accent-green);
+            border: 1px solid rgba(0, 230, 118, 0.4);
+        }
+        .compass-status-pill.gate {
+            background: rgba(255, 171, 0, 0.15);
+            color: var(--accent-orange);
+            border-color: rgba(255, 171, 0, 0.4);
+        }
+        .compass-bezel-pointer {
+            position: absolute;
+            top: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 14px solid var(--accent-orange);
+            filter: drop-shadow(0 0 5px var(--accent-orange));
+            z-index: 6;
+        }
+
+        /* Heading Tape / Ribbon */
+        .heading-tape-wrap {
+            width: 100%;
+            background: rgba(11, 16, 26, 0.7);
+            border: 1px solid var(--border-card);
+            border-radius: 10px;
+            padding: 8px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            position: relative;
+        }
+        .tape-track-container {
+            width: 100%;
+            height: 40px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .tape-track {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            position: absolute;
+            left: 50%;
+            will-change: transform;
+            transition: transform 0.12s linear;
+        }
+        .tape-mark {
+            width: 36px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--text-dim);
+            flex-shrink: 0;
+        }
+        .tape-mark.cardinal {
+            color: var(--brand-cyan);
+            font-weight: 900;
+            font-size: 11px;
+        }
+        .tape-mark.north {
+            color: var(--accent-red);
+            font-weight: 900;
+            font-size: 11px;
+        }
+        .tape-tick {
+            width: 1px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.25);
+            margin-bottom: 2px;
+        }
+        .tape-reticle {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--accent-orange);
+            box-shadow: 0 0 8px var(--accent-orange);
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+        .tape-reticle::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 6px solid var(--accent-orange);
+        }
+
+        /* 4-Box Mountain Grid */
+        .mountain-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            width: 100%;
+        }
+        .m-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 12px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .m-box-title {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .m-box-val {
+            font-size: 20px;
+            font-weight: 900;
+            color: var(--text-main);
+            margin: 4px 0 2px 0;
+            font-variant-numeric: tabular-nums;
+        }
+        .m-box-sub {
+            font-size: 9px;
+            color: var(--text-dim);
+        }
+
+        .tab-content { display: none; flex-direction: column; gap: 10px; width: 100%; }
+        .tab-content.active { display: flex; }
+
+        /* Card Styles */
+        .card {
+            background: var(--bg-card-glass); backdrop-filter: blur(10px);
+            border: 1px solid var(--border-card); border-radius: 16px; padding: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+        .lean-card { display: flex; flex-direction: column; align-items: center; position: relative; }
+        .lean-header {
+            width: 100%; display: flex; justify-content: space-between; align-items: center;
+            font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px;
+        }
+        .gauge-svg-wrap { width: 100%; max-width: 280px; height: 160px; position: relative; }
+        .lean-value-center { position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); text-align: center; }
+        .lean-deg-big {
+            font-size: 48px; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums;
+            background: linear-gradient(180deg, #ffffff 40%, var(--brand-cyan) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .lean-dir-badge { font-size: 12px; font-weight: 800; color: var(--text-dim); }
+        .max-lean-container {
+            width: 100%; display: flex; justify-content: space-between; align-items: center;
+            margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-card);
+        }
+        .max-item { display: flex; flex-direction: column; gap: 1px; }
+        .max-label { font-size: 10px; color: var(--text-dim); font-weight: 600; }
+        .max-val { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; }
+        .max-val.left { color: var(--brand-cyan); }
+        .max-val.right { color: var(--accent-orange); }
+        .btn-reset-max {
+            background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border-card);
+            color: var(--text-dim); border-radius: 8px; padding: 4px 8px; font-size: 10px; font-weight: 700; cursor: pointer;
+        }
+
+        /* 2-col Grid */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .gmeter-wrap { display: flex; flex-direction: column; align-items: center; }
+        .canvas-gmeter {
+            width: 125px; height: 125px; border-radius: 50%;
+            background: radial-gradient(circle, #101622 0%, #080c14 100%); border: 1px solid var(--border-card);
+        }
+        .stat-grid { display: flex; flex-direction: column; justify-content: space-between; gap: 6px; }
+        .stat-box { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 10px; padding: 6px 8px; }
+        .stat-label { font-size: 9px; color: var(--text-dim); font-weight: 700; text-transform: uppercase; }
+        .stat-num { font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; margin-top: 1px; }
+        
+        .bar-track { width: 100%; height: 5px; background: rgba(255, 255, 255, 0.1); border-radius: 3px; position: relative; overflow: hidden; margin-top: 3px; }
+        .bar-fill { position: absolute; height: 100%; top: 0; left: 0; width: 0%; background: var(--accent-green); transition: width 0.05s ease; }
+        
+        .pitch-bar-wrap { display: flex; align-items: center; gap: 6px; margin-top: 3px; }
+        .pitch-track { flex: 1; height: 5px; background: rgba(255, 255, 255, 0.1); border-radius: 3px; position: relative; overflow: hidden; }
+        .pitch-fill { position: absolute; height: 100%; top: 0; left: 50%; width: 0%; background: var(--brand-cyan); transition: width 0.05s ease, left 0.05s ease; }
+        
+        .graph-card { display: flex; flex-direction: column; gap: 4px; }
+        .graph-canvas { width: 100%; height: 80px; background: #080c14; border-radius: 8px; border: 1px solid var(--border-card); }
+        
+        .actions-bar { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+        .action-btn {
+            background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-card);
+            color: var(--text-main); border-radius: 12px; padding: 9px 4px; font-size: 11px;
+            font-weight: 700; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer;
+        }
+        .action-btn:active { background: rgba(255, 255, 255, 0.15); }
+        .action-btn.active { background: rgba(255, 23, 68, 0.2); border-color: var(--accent-red); color: var(--accent-red); }
+
+        .corner-list { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+        .corner-pill {
+            background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-card);
+            border-radius: 8px; padding: 5px 8px; min-width: 75px; flex-shrink: 0; display: flex; flex-direction: column; gap: 1px;
+        }
+        .corner-dir { font-size: 9px; font-weight: 800; }
+        .corner-dir.L { color: var(--brand-cyan); }
+        .corner-dir.R { color: var(--accent-orange); }
+        .corner-max { font-size: 14px; font-weight: 800; }
+        .corner-rate { font-size: 9px; color: var(--text-dim); }
+
+        /* Map Styles & 100% Free Dark Filter */
+        .map-container-wrap {
+            position: relative;
+            width: 100%;
+            height: 360px;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid var(--border-card);
+        }
+        #mapView {
+            width: 100%;
+            height: 100%;
+            background: #0d1117;
+        }
+        
+        .dark-map .dark-tiles {
+            filter: brightness(0.62) invert(1) contrast(2.8) hue-rotate(200deg) saturate(0.3) brightness(0.75);
+        }
+
+        .map-overlay-stats {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 6px;
+            z-index: 1000;
+            pointer-events: none;
+        }
+        .map-stat-pill {
+            background: rgba(10, 14, 23, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border-card);
+            border-radius: 10px;
+            padding: 6px 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .map-stat-label { font-size: 8px; font-weight: 800; color: var(--text-dim); text-transform: uppercase; }
+        .map-stat-val { font-size: 14px; font-weight: 900; color: var(--brand-cyan); font-variant-numeric: tabular-nums; }
+        
+        .map-floating-controls {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 1000;
+        }
+        .map-ctrl-btn {
+            background: rgba(18, 24, 36, 0.9);
+            backdrop-filter: blur(6px);
+            border: 1px solid var(--border-card);
+            color: var(--text-main);
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        .map-ctrl-btn.active {
+            border-color: var(--brand-cyan);
+            color: var(--brand-cyan);
+            background: rgba(0, 212, 255, 0.2);
+        }
+
+        .map-legend {
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 10px; color: var(--text-dim); padding-top: 4px;
+        }
+        .legend-item { display: flex; align-items: center; gap: 4px; font-weight: 700; }
+        .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+        /* Auto-Cal Card Special Styling */
+        .autocal-card {
+            background: linear-gradient(135deg, rgba(18, 24, 36, 0.95), rgba(30, 20, 50, 0.9));
+            border: 1px solid var(--accent-purple);
+            position: relative;
+            overflow: hidden;
+        }
+        .autocal-progress-bar {
+            width: 100%; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 4px; overflow: hidden; margin: 8px 0;
+        }
+        .autocal-progress-fill {
+            height: 100%; width: 0%; background: linear-gradient(90deg, var(--brand-blue), var(--accent-purple)); transition: width 0.3s ease;
+        }
+
+        /* Settings Grid & Screen Grid */
+        .screen-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .screen-card-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-card);
+            border-radius: 12px;
+            padding: 10px;
+            text-align: left;
+            color: var(--text-main);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            transition: all 0.2s ease;
+        }
+        .screen-card-btn:active { background: rgba(0, 102, 255, 0.2); }
+        .screen-card-btn.active {
+            border-color: var(--brand-cyan);
+            background: rgba(0, 212, 255, 0.15);
+        }
+        .screen-title { font-size: 12px; font-weight: 800; color: var(--brand-cyan); }
+        .screen-desc { font-size: 10px; color: var(--text-dim); }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .setting-row:last-child { border-bottom: none; }
+        .setting-info { display: flex; flex-direction: column; gap: 2px; }
+        .setting-name { font-size: 13px; font-weight: 700; }
+        .setting-hint { font-size: 10px; color: var(--text-dim); }
+
+        .toggle-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-card);
+            color: var(--text-main);
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .toggle-btn.on {
+
+        /* Map Mode Pills & Badges */
+        .map-mode-bar {
+            display: flex; gap: 6px; margin: 8px 0 4px 0; width: 100%;
+        }
+        .map-mode-pill {
+            flex: 1; background: rgba(255,255,255,0.06); border: 1px solid var(--border-card);
+            color: var(--text-dim); font-size: 10px; font-weight: 700; padding: 6px 4px;
+            border-radius: 8px; cursor: pointer; text-align: center; transition: all 0.2s;
+        }
+        .map-mode-pill.active {
+            background: rgba(0, 212, 255, 0.2); border-color: var(--brand-cyan); color: var(--brand-cyan); font-weight: 800;
+        }
+        .apex-badge-marker {
+            background: transparent; border: none;
+        }
+        .apex-badge {
+            background: rgba(10, 14, 23, 0.92); border: 1.5px solid; border-radius: 6px;
+            padding: 2px 5px; font-size: 9px; font-weight: 900; white-space: nowrap;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.6); transform: translate(-50%, -100%);
+        }
+        .apex-badge.sx { border-color: var(--brand-cyan); color: var(--brand-cyan); }
+        .apex-badge.dx { border-color: var(--accent-orange); color: var(--accent-orange); }
+        .apex-badge.limit { border-color: #d500f9; color: #d500f9; }
+
+        /* Saved Sessions Card */
+        .session-card-item {
+            background: var(--bg-card); border: 1px solid var(--border-card);
+            border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 6px;
+            margin-bottom: 8px; transition: border-color 0.2s;
+        }
+        .session-card-item:hover { border-color: rgba(0, 212, 255, 0.4); }
+        .session-header { display: flex; justify-content: space-between; align-items: center; }
+        .session-date { font-size: 12px; font-weight: 800; color: var(--text-main); }
+        .session-badge { background: rgba(255, 255, 255, 0.08); padding: 2px 6px; border-radius: 6px; font-size: 10px; color: var(--text-dim); }
+        .session-stats-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
+            background: rgba(0, 0, 0, 0.25); padding: 6px; border-radius: 8px; text-align: center;
+        }
+        .s-stat-lbl { font-size: 8px; color: var(--text-dim); text-transform: uppercase; font-weight: 700; display: block; }
+        .s-stat-val { font-size: 11px; font-weight: 800; font-variant-numeric: tabular-nums; }
+        .session-actions { display: flex; gap: 6px; margin-top: 4px; }
+        .session-btn {
+            flex: 1; background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-card);
+            color: var(--text-main); border-radius: 8px; padding: 6px 4px; font-size: 10px; font-weight: 700;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;
+        }
+        .session-btn.primary { background: rgba(0, 102, 255, 0.25); border-color: var(--brand-blue); color: var(--brand-cyan); }
+        .session-btn.delete { flex: 0 0 32px; color: var(--accent-red); }
+            background: linear-gradient(135deg, var(--brand-blue), var(--brand-cyan));
+            color: white;
+            border: none;
+        }
+        .toggle-btn.purple {
+            background: linear-gradient(135deg, #7c4dff, #651fff);
+            color: white;
+            border: none;
+        }
+
+        .alert-flash {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            border: 6px solid var(--accent-red); pointer-events: none; opacity: 0; transition: opacity 0.1s ease; z-index: 9999;
+        }
+        .alert-flash.active { opacity: 1; }
+
+        /* ===== Same look as the Android app ===== */
+        :root { --outline: #26354D; --bg-alt: #1A2232; }
+        body { background: var(--bg-main); padding: 0 0 84px 0; align-items: stretch; }
+        .container { max-width: 560px; margin: 0 auto; padding: 0 14px; gap: 12px; }
+        .app-head { position: sticky; top: 0; z-index: 50; display: flex; justify-content: space-between; align-items: center;
+            padding: 14px 16px 10px; background: var(--bg-main); max-width: 560px; margin: 0 auto; width: 100%;
+            border: none; border-radius: 0; backdrop-filter: none; }
+        .app-name { font-size: 24px; font-weight: 800; }
+        .app-sub { font-size: 13px; color: var(--text-dim); margin-top: 2px; }
+        .conn-pill { display: flex; align-items: center; gap: 8px; background: var(--bg-alt); border-radius: 999px; padding: 8px 14px; font-size: 13px; font-weight: 700; }
+        .conn-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent-red); }
+        .card { background: var(--bg-card); border: 1px solid var(--outline); border-radius: 18px; padding: 16px; box-shadow: none; backdrop-filter: none; display: flex; flex-direction: column; gap: 8px; }
+        .sec, .sec-out { color: var(--text-dim); font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+        .sec-out { margin: 6px 4px -4px; }
+        .card-title { font-size: 20px; font-weight: 800; }
+        .hint { color: var(--text-dim); font-size: 13px; line-height: 1.45; }
+        .body-text { font-size: 15px; line-height: 1.45; }
+        .btn, .btn-t { display: block; width: 100%; text-align: center; text-decoration: none; border: none; border-radius: 14px; padding: 14px 12px;
+            font-size: 15px; font-weight: 800; cursor: pointer; margin-top: 4px; }
+        .btn { background: var(--brand-cyan); color: #04121A; }
+        .btn.secondary { background: var(--bg-alt); color: var(--text-main); }
+        .btn-t { background: var(--bg-alt); color: var(--text-main); font-weight: 700; }
+        .btn-t:active, .btn:active { opacity: 0.8; }
+        .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+        .field { width: 100%; background: transparent; color: var(--text-main); border: 1px solid var(--outline); border-radius: 12px; padding: 14px; font-size: 15px; user-select: text; -webkit-user-select: text; }
+        .lean-header span:first-child { color: var(--text-dim); font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+        .action-btn, .toggle-btn, .screen-card-btn, .btn-reset-max { background: var(--bg-alt) !important; color: var(--text-main) !important; border: none !important;
+            border-radius: 14px !important; font-weight: 700; min-height: 46px; box-shadow: none !important; }
+        .screen-card-btn.active { outline: 2px solid var(--brand-cyan); }
+        input[type=number], select { background: transparent !important; border: 1px solid var(--outline) !important; border-radius: 12px !important; padding: 12px !important; color: var(--text-main) !important; }
+        .version-line { text-align: center; color: var(--text-dim); font-size: 12px; margin: 8px 0 16px; }
+        .tab-content { flex-direction: column; gap: 12px; padding-top: 4px; }
+        .bottom-nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: grid; grid-template-columns: repeat(4, 1fr);
+            background: var(--bg-card); padding: 8px 8px calc(8px + env(safe-area-inset-bottom)); border-top: 1px solid var(--outline); }
+        .bottom-nav .tab-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; color: var(--text-dim);
+            font-size: 13px; font-weight: 600; padding: 2px 0; }
+        .bottom-nav .nav-ico { display: flex; align-items: center; justify-content: center; width: 64px; height: 32px; border-radius: 16px; }
+        .bottom-nav .tab-btn.active { color: var(--text-main); font-weight: 800; background: none; border: none; }
+        .bottom-nav .tab-btn.active .nav-ico { background: var(--bg-alt); }
+        .map-mode-pill { background: var(--bg-alt) !important; color: var(--text-main) !important; border: none !important; border-radius: 999px !important;
+            padding: 8px 12px !important; font-weight: 700; }
+        .map-mode-pill.active { background: var(--brand-cyan) !important; color: #04121A !important; }
+        #btnRecord.recording { background: var(--accent-red); color: #fff; animation: none; }
+    </style>
+</head>
+<body>
+
+<div class="alert-flash" id="alertFlash"></div>
+
+<!-- Same layout as the OmniRide Android app: header with the link status, four tabs at the bottom -->
+<header class="app-head">
+    <div>
+        <div class="app-name">OmniRide</div>
+        <div class="app-sub" id="pageSubtitle">La tua moto</div>
+    </div>
+    <div class="conn-pill" id="connPill"><span class="conn-dot" id="connDot"></span><span id="connPillText">Non collegata</span></div>
+</header>
+
+<div class="container">
+
+    <!-- ============ MOTO ============ -->
+    <div id="tabBike" class="tab-content active">
+        <div class="card">
+            <div class="sec">Collegamento</div>
+            <div class="card-title" id="connTitle">Moto non collegata</div>
+            <div class="hint" id="connDetail">Accendi la moto e tocca il pulsante (serve Chrome con il Bluetooth attivo).</div>
+            <button class="btn" id="btnConnect" onclick="toggleBluetooth()"><span id="btnConnectText">Collega la moto</span></button>
+        </div>
+
+        <div class="card">
+            <div class="sec">La tua moto</div>
+            <div class="hint">Compare nella schermata di benvenuto dei display (max 24 caratteri).</div>
+            <input class="field" id="inpBikeName" maxlength="24" placeholder="Modello (es. Yamaha Tracer 9 GT)">
+            <button class="btn-t" onclick="saveBikeName()">Salva e invia ai display</button>
+        </div>
+
+        <div class="sec-out">Dati in tempo reale</div>
+<!-- Main Lean Angle Dial -->
+        <div class="card lean-card">
+            <div class="lean-header">
+                <span>Angolo di Piega</span>
+                <span id="lblRollRate" style="color:var(--brand-cyan)">0 °/s</span>
+            </div>
+
+            <div class="gauge-svg-wrap">
+                <svg viewBox="0 0 300 180" style="width:100%;height:100%;">
+                    <path d="M 30 150 A 120 120 0 0 1 270 150" fill="none" stroke="#162032" stroke-width="14" stroke-linecap="round"/>
+                    <path d="M 120 38 A 120 120 0 0 1 180 38" fill="none" stroke="#00e676" stroke-width="6" opacity="0.4"/>
+                    <circle cx="56" cy="74" r="4" fill="#ff1744"/>
+                    <circle cx="244" cy="74" r="4" fill="#ff1744"/>
+                    <line id="svgNeedle" x1="150" y1="150" x2="150" y2="35" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+                    <circle cx="150" cy="150" r="8" fill="#ffffff"/>
+                </svg>
+
+                <div class="lean-value-center">
+                    <div class="lean-deg-big" id="lblRollDeg">0.0°</div>
+                    <div class="lean-dir-badge" id="lblRollDir">DIRITTO</div>
+                </div>
+            </div>
+
+            <div class="max-lean-container">
+                <div class="max-item">
+                    <span class="max-label">MAX SINISTRA</span>
+                    <span class="max-val left" id="lblMaxL">0.0°</span>
+                </div>
+                <button class="btn-reset-max" onclick="resetMaxStats()">RESET RECORD</button>
+                <div class="max-item" style="align-items:flex-end;">
+                    <span class="max-label">MAX DESTRA</span>
+                    <span class="max-val right" id="lblMaxR">0.0°</span>
+                </div>
+            </div>
+        </div>
+<!-- G-Meter and Pitch Grid -->
+        <div class="grid-2">
+            <div class="card gmeter-wrap">
+                <div class="lean-header" style="margin-bottom:6px;">
+                    <span>G-Meter 2D</span>
+                    <span id="lblTotalG" style="color:var(--text-main);">1.00 G</span>
+                </div>
+                <canvas id="canvasGMeter" class="canvas-gmeter" width="250" height="250"></canvas>
+                <div style="display:flex;justify-content:space-between;width:100%;font-size:9px;color:var(--text-dim);margin-top:4px;font-weight:700;">
+                    <span id="lblMaxBrake">BRK: 0.00 G</span>
+                    <span id="lblMaxAccel">ACC: 0.00 G</span>
+                </div>
+            </div>
+
+            <div class="card stat-grid">
+                <div class="stat-box">
+                    <span class="stat-label">Farfalla Gas (TPS)</span>
+                    <div class="stat-num" id="lblTps" style="color:var(--accent-green);">0 %</div>
+                    <div class="bar-track">
+                        <div class="bar-fill" id="tpsFill"></div>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">Frenata / Accel</span>
+                    <div class="stat-num" id="lblGLong">0.00 G</div>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">Beccheggio Forcella</span>
+                    <div class="stat-num" id="lblPitch">0.0°</div>
+                    <div class="pitch-bar-wrap">
+                        <div class="pitch-track">
+                            <div class="pitch-fill" id="pitchFill"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">Quota Barometrica</span>
+                    <div class="stat-num" id="lblAlt" style="color:var(--brand-cyan);">-- m</div>
+                </div>
+            </div>
+        </div>
+<!-- Real-time Rolling Graph -->
+        <div class="card graph-card">
+            <div class="lean-header">
+                <span>Grafico Live (60 fps)</span>
+                <span style="font-size:9px;color:var(--text-dim);">● Piega  ● G-Long  ● TPS</span>
+            </div>
+            <canvas id="canvasGraph" class="graph-canvas" width="600" height="160"></canvas>
+        </div>
+<!-- Corner Analyzer -->
+        <div class="card">
+            <div class="lean-header" style="margin-bottom:6px;">
+                <span>Ultime Curve Analizzate</span>
+                <span id="lblCornerCount" style="color:var(--brand-cyan)">0 curve</span>
+            </div>
+            <div class="corner-list" id="cornerList">
+                <div style="font-size:11px;color:var(--text-dim);padding:6px 0;">In attesa delle prime curve...</div>
+            </div>
+        </div>
+<!-- VIAGGIO / PARCHEGGIO / 0-100 (same features as the Android app) -->
+        <div class="card" style="padding:12px;">
+            <div class="lean-header" style="margin-bottom:6px;"><span>Viaggio</span><span id="tripGps" style="font-size:11px;color:var(--text-dim);">GPS spento</span></div>
+            <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">Dal GPS del telefono, senza Google Maps. Funziona con questa pagina aperta e la moto collegata.</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;">
+                <div><div style="font-size:10px;color:var(--text-dim);">VELOCITA'</div><div id="tripSpeed" style="font-size:20px;font-weight:800;">--</div></div>
+                <div><div style="font-size:10px;color:var(--text-dim);">VIAGGIO</div><div id="tripDist" style="font-size:20px;font-weight:800;">--</div></div>
+                <div><div style="font-size:10px;color:var(--text-dim);">IN SELLA · MEDIA</div><div id="tripTime" style="font-size:20px;font-weight:800;">--</div></div>
+            </div>
+            <div id="tripMaint" style="font-size:12px;line-height:1.6;margin:10px 0;white-space:pre-line;"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                <button class="action-btn" onclick="tripConfirm('fuel')">Pieno fatto</button>
+                <button class="action-btn" onclick="tripConfirm('trip')">Azzera viaggio</button>
+                <button class="action-btn" onclick="tripConfirm('chain')">Catena ingrassata</button>
+                <button class="action-btn" onclick="tripConfirm('service')">Tagliando fatto</button>
+            </div>
+            <div style="font-size:11px;color:var(--text-dim);margin:10px 0 4px;">Intervalli in km (0 = non usare): autonomia, catena, tagliando</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:6px;">
+                <input id="tripRange" type="number" min="0" placeholder="Autonomia" style="min-width:0;padding:8px;border-radius:8px;border:1px solid var(--border-card);background:transparent;color:var(--text-main);">
+                <input id="tripChain" type="number" min="0" placeholder="Catena" style="min-width:0;padding:8px;border-radius:8px;border:1px solid var(--border-card);background:transparent;color:var(--text-main);">
+                <input id="tripService" type="number" min="0" placeholder="Tagliando" style="min-width:0;padding:8px;border-radius:8px;border:1px solid var(--border-card);background:transparent;color:var(--text-main);">
+                <button class="action-btn" onclick="tripSaveIntervals()">Salva</button>
+            </div>
+        </div>
+        <div class="card" style="padding:12px;">
+            <div class="lean-header" style="margin-bottom:6px;"><span>Dove ho parcheggiato</span></div>
+            <div id="parkInfo" style="font-size:12px;color:var(--text-dim);margin-bottom:8px;">Nessun parcheggio salvato: viene registrato quando la moto si scollega o va in standby.</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                <button class="action-btn" onclick="parkOpen(false)">Mostra sulla mappa</button>
+                <button class="action-btn" onclick="parkOpen(true)">Portami alla moto</button>
+            </div>
+        </div>
+        <div class="card" style="padding:12px;">
+            <div class="lean-header" style="margin-bottom:6px;"><span>0-100 km/h</span></div>
+            <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">Arma il cronometro, fermati e parti: misura la centralina. Solo in pista o in un'area chiusa al traffico.</div>
+            <div id="launchInfo" style="font-size:14px;font-weight:700;margin-bottom:8px;">--</div>
+            <button class="action-btn" id="launchBtn" style="width:100%;" onclick="launchToggle()">Arma il cronometro</button>
+        </div>
+
+        <div class="sec-out">Bussola e quota</div>
+<!-- Main Compass Dial Card -->
+        <div class="card compass-card">
+            <div class="lean-header" style="width:100%;">
+                <span>Bussola Digitale 10-DOF (LSM303D)</span>
+                <span id="lblCompassGating" style="color:var(--accent-green);font-size:11px;font-weight:700;">Tilt Compensated</span>
+            </div>
+
+            <!-- Rotating Compass Rose Dial -->
+            <div class="compass-rose-container">
+                <div class="compass-bezel-pointer"></div>
+                <div class="compass-center-display">
+                    <span class="compass-deg-val" id="lblCompassDeg">0°</span>
+                    <span class="compass-cardinal-val" id="lblCompassCard">N</span>
+                    <span class="compass-status-pill" id="lblCompassStatus">VALIDA</span>
+                </div>
+                <svg id="compassDial" class="compass-dial-svg" viewBox="0 0 250 250">
+                    <defs>
+                        <radialGradient id="compassBgGrad" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#162032" stop-opacity="0.8"/>
+                            <stop offset="85%" stop-color="#0b101a" stop-opacity="0.95"/>
+                            <stop offset="100%" stop-color="#001428" stop-opacity="1"/>
+                        </radialGradient>
+                    </defs>
+                    <!-- Outer Ring -->
+                    <circle cx="125" cy="125" r="118" fill="url(#compassBgGrad)" stroke="rgba(0, 212, 255, 0.25)" stroke-width="2"/>
+                    <circle cx="125" cy="125" r="102" fill="none" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1"/>
+                    
+                    <!-- Major 30-deg Ticks & Degree Numbers -->
+                    <line x1="125" y1="8" x2="125" y2="22" stroke="#ff1744" stroke-width="3"/>
+                    <text x="125" y="38" text-anchor="middle" fill="#ff1744" font-size="16" font-weight="900" font-family="sans-serif">N</text>
+                    
+                    <line x1="242" y1="125" x2="228" y2="125" stroke="#00d4ff" stroke-width="3"/>
+                    <text x="216" y="130" text-anchor="middle" fill="#00d4ff" font-size="15" font-weight="900" font-family="sans-serif">E</text>
+
+                    <line x1="125" y1="242" x2="125" y2="228" stroke="#00d4ff" stroke-width="3"/>
+                    <text x="125" y="222" text-anchor="middle" fill="#00d4ff" font-size="15" font-weight="900" font-family="sans-serif">S</text>
+
+                    <line x1="8" y1="125" x2="22" y2="125" stroke="#00d4ff" stroke-width="3"/>
+                    <text x="34" y="130" text-anchor="middle" fill="#00d4ff" font-size="15" font-weight="900" font-family="sans-serif">W</text>
+
+                    <!-- Intermediate Cardinals: NE (45), SE (135), SW (225), NW (315) -->
+                    <text x="186" y="68" text-anchor="middle" fill="#8899ac" font-size="11" font-weight="700">NE</text>
+                    <text x="186" y="190" text-anchor="middle" fill="#8899ac" font-size="11" font-weight="700">SE</text>
+                    <text x="64" y="190" text-anchor="middle" fill="#8899ac" font-size="11" font-weight="700">SW</text>
+                    <text x="64" y="68" text-anchor="middle" fill="#8899ac" font-size="11" font-weight="700">NW</text>
+
+                    <!-- Degree Ticks -->
+                    <g stroke="rgba(255,255,255,0.3)" stroke-width="1.5">
+                        <line x1="125" y1="10" x2="125" y2="17" transform="rotate(15 125 125)"/>
+                        <line x1="125" y1="10" x2="125" y2="20" transform="rotate(30 125 125)"/>
+                        <line x1="125" y1="10" x2="125" y2="17" transform="rotate(45 125 125)"/>
+                        <line x1="125" y1="10" x2="125" y2="20" transform="rotate(60 125 125)"/>
+                        <line x1="125" y1="10" x2="125" y2="17" transform="rotate(75 125 125)"/>
+                        <line x1="125" y1="10" x2="125" y2="17" transform="rotate(105 125 125)"/>
+                        <line x1="125" y1="10" x2="125" y2="20" transform="rotate(120 125 125)"/>
+                        <line x1="125" y1="10" x2="125" y2="17" transform="rotate(135 125 125)"/>
+                        <line x1="125" y1="10" x2="125" y2="20" transform="rotate(150 125 125)"/>
+                        <line x1="125" y1="10" x2="125" y2="17" transform="rotate(165 125 125)"/>
+                        <line x1="125" y1="10" x2="125" y2="17" transform="rotate(195 125 125)"/>
+                        <line x1="125" y1="10" x2="125" y2="20" transform="rotate(210 125 125)"/>
+                        <line x1="125" y1="10" x2="125" y2="17" transform="rotate(225 125 125)"/>
+                        <line x1="125" y1="10" x2="125" y2="20" transform="rotate(240 125 125)"/>
+                        <line x1="125" y1="10" x2="125" y2="17" transform="rotate(255 125 125)"/>
+                        <line x1="125" y1="10" x2="125" y2="17" transform="rotate(285 125 125)"/>
+                        <line x1="125" y1="10" x2="125" y2="20" transform="rotate(300 125 125)"/>
+                        <line x1="125" y1="10" x2="125" y2="17" transform="rotate(315 125 125)"/>
+                        <line x1="125" y1="10" x2="125" y2="20" transform="rotate(330 125 125)"/>
+                        <line x1="125" y1="10" x2="125" y2="17" transform="rotate(345 125 125)"/>
+                    </g>
+                </svg>
+            </div>
+
+            <!-- Heading Tape Ribbon (Aviation HUD) -->
+            <div class="heading-tape-wrap">
+                <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-dim);font-weight:700;">
+                    <span>NASTRO ROTTA AZIMUTH</span>
+                    <span id="lblGpsTrackHeading" style="color:var(--brand-cyan);">GPS Rotta: --°</span>
+                </div>
+                <div class="tape-track-container">
+                    <div class="tape-reticle"></div>
+                    <div id="headingTapeTrack" class="tape-track"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mountain Tour & Altimetry 4-Box Grid -->
+        <div class="mountain-grid">
+            <div class="m-box">
+                <div class="m-box-title">
+                    <span>⛰️ Quota s.l.m.</span>
+                </div>
+                <div class="m-box-val" id="lblTourAlt" style="color:var(--brand-cyan);">-- m</div>
+                <div class="m-box-sub">Barometro BMP180</div>
+            </div>
+
+            <div class="m-box">
+                <div class="m-box-title">
+                    <span>📈 Dislivello D+</span>
+                </div>
+                <div class="m-box-val" id="lblTourDPlus" style="color:var(--accent-green);">+0 m</div>
+                <div class="m-box-sub">Deadband 2m anti-turbolenza</div>
+            </div>
+
+            <div class="m-box">
+                <div class="m-box-title">
+                    <span>🌡️ Temp Sensore</span>
+                </div>
+                <div class="m-box-val" id="lblTourTemp" style="color:var(--accent-orange);">-- °C</div>
+                <div class="m-box-sub">Sonda termica interna</div>
+            </div>
+
+            <div class="m-box">
+                <div class="m-box-title">
+                    <span>📐 Assetto / Pendenza</span>
+                </div>
+                <div class="m-box-val" id="lblTourPitch" style="color:#ffffff;">0.0°</div>
+                <div class="m-box-sub">Beccheggio Forcella/Mono</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ============ SOS ============ -->
+    <div id="tabSos" class="tab-content">
+        <div class="card">
+            <div class="sec">Come funziona</div>
+            <div class="body-text">Se la moto resta a terra, i display diventano rossi con un conto alla rovescia di 30 secondi. Se non lo annulli (tocca un display, il pulsante della centralina o la notifica sul telefono), parte un SMS con la tua posizione ai tuoi contatti.</div>
+            <div class="hint" style="margin-top:10px;">Il conto alla rovescia parte solo se valgono tutte e tre:<br>1. rilevamento armato: dopo 30 secondi di guida dall'accensione;<br>2. inclinazione oltre 65 gradi;<br>3. moto ferma in quella posizione per 3,5 secondi.</div>
+        </div>
+        <div class="card">
+            <div class="sec">Contatti e SMS</div>
+            <div class="body-text">I contatti di emergenza e l'invio degli SMS sono nell'app Android OmniRide: il browser non può mandare SMS.</div>
+            <a class="btn-t" href="https://github.com/Silver20000/OmniRide/releases/latest/download/omniride.apk">Scarica l'app Android</a>
+        </div>
+        <div class="card">
+            <div class="sec">Prova</div>
+            <div class="hint">Simula caduta: avvia il conto alla rovescia sui display (annullalo toccandone uno). Prova rilevamento reale: arma subito il rilevamento, poi inclina la centralina oltre 65° e lasciala ferma 4 s.</div>
+            <div class="grid2">
+                <button class="btn-t" onclick="if(confirm('Avviare il conto alla rovescia di prova sui display? Annullalo toccandone uno.')) sendBleCmd('CRASH_TEST')">Simula caduta</button>
+                <button class="btn-t" onclick="if(confirm('Armare subito il rilevamento? Poi inclina la centralina oltre 65° e lasciala ferma 4 s.')) sendBleCmd('CRASH_ARM')">Prova rilevamento reale</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ GIRI ============ -->
+    <div id="tabRides" class="tab-content">
+        <div class="card">
+            <div class="sec">Registrazione</div>
+            <div class="hint">Registra il giro con GPS del telefono e dati della centralina, poi salvalo ed esportalo.</div>
+            <div class="grid2">
+                <button class="btn" id="btnRecord" onclick="toggleRecording()"><span id="lblRecText">Avvia giro</span></button>
+                <button class="btn-t" onclick="exportCsv()">Esporta CSV</button>
+            </div>
+            <div class="gps-status-badge" id="gpsStatusBadge" style="margin-top:10px;align-self:flex-start;"><div class="gps-dot"></div><span id="gpsStatusText">GPS spento</span></div>
+        </div>
+<div class="card" style="padding:10px;">
+            <div class="lean-header" style="margin-bottom:8px;">
+                <span>Mappa Tracciato GPS Dinamico</span>
+                <span id="lblGpsAcc" style="color:var(--text-dim);font-size:10px;">Acc: -- m</span>
+            </div>
+
+            <div class="map-container-wrap">
+                <div id="mapView" class="dark-map"></div>
+                
+                <!-- Floating Real-time Stats Overlay -->
+                <div class="map-overlay-stats">
+                    <div class="map-stat-pill">
+                        <span class="map-stat-label">Velocità</span>
+                        <span class="map-stat-val" id="lblGpsSpeed">0 km/h</span>
+                    </div>
+                    <div class="map-stat-pill">
+                        <span class="map-stat-label">Distanza</span>
+                        <span class="map-stat-val" id="lblGpsDist">0.0 km</span>
+                    </div>
+                    <div class="map-stat-pill">
+                        <span class="map-stat-label">Piega Live</span>
+                        <span class="map-stat-val" id="lblMapLean">0.0°</span>
+                    </div>
+                </div>
+
+                <!-- Floating Map Buttons -->
+                <div class="map-floating-controls">
+                    <button class="map-ctrl-btn" id="btnLayerToggle" onclick="toggleMapLayer()" title="Cambia Layer Mappa">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M11.99 18.54l-7.37-5.73L3 14.07l9 7 9-7-1.63-1.27-7.38 5.74zM12 16l7.36-5.73L21 9.07l-9-7-9 7 1.63 1.27L12 16z"/>
+                        </svg>
+                    </button>
+                    <button class="map-ctrl-btn active" id="btnFollowBike" onclick="toggleFollowBike()" title="Segui Moto">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
+                        </svg>
+                    </button>
+                    <button class="map-ctrl-btn" onclick="clearGpsTrack()" title="Cancella Traccia">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Heatmap Mode Bar -->
+            <div class="map-mode-bar">
+                <button class="map-mode-pill active" id="pillModeLean" onclick="setMapColorMode('lean')">📐 Piega SX/DX</button>
+                <button class="map-mode-pill" id="pillModeSpeed" onclick="setMapColorMode('speed')">⚡ Velocità</button>
+                <button class="map-mode-pill" id="pillModeG" onclick="setMapColorMode('gforce')">🛑 G-Force</button>
+            </div>
+
+            <!-- Heatmap Legend -->
+            <div class="map-legend" id="mapLegendContent" style="flex-wrap:wrap; gap:6px;">
+                <div class="legend-item"><span class="legend-dot" style="background:#00e676;"></span> Diritto (&lt;12°)</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#00d4ff;"></span> SX (12-32°)</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#ff9100;"></span> DX (12-32°)</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#ff1744;"></span> Forte (&gt;35°)</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#d500f9;"></span> Gomito (&gt;42°)</div>
+            </div>
+        </div>
+<!-- GPS Actions Bar -->
+        <div class="actions-bar">
+            <button class="action-btn" onclick="saveCurrentSessionToPhone()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/>
+                </svg>
+                <span>Salva Sessione</span>
+            </button>
+            <button class="action-btn" onclick="loadDemoRoute()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M14 6l-3.75 5 2.85 3.8-1.6 1.2L7.2 10.5 2 17h20L14 6z"/>
+                </svg>
+                <span>Passo Demo</span>
+            </button>
+            <button class="action-btn" onclick="initGpsTracking(true)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
+                </svg>
+                <span>Riavvia GPS</span>
+            </button>
+        </div>
+<!-- Saved Sessions in Phone Memory Card -->
+        <div class="card" style="padding:12px;">
+            <div class="lean-header" style="margin-bottom:8px;">
+                <span>📱 Sessioni Salvate sul Telefono</span>
+                <span id="lblSessionCount" style="color:var(--brand-cyan); font-weight:800; font-size:11px;">0 sessioni</span>
+            </div>
+            <div id="savedSessionsList" style="display:flex; flex-direction:column; gap:6px; max-height:280px; overflow-y:auto;">
+                <!-- Dynamically populated from localStorage -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ============ ALTRO ============ -->
+    <div id="tabMore" class="tab-content">
+
+        <div class="card">
+            <div class="lean-header" style="margin-bottom:10px;">
+                <span>Seleziona Schermata Display Cockpit</span>
+                <button class="btn-reset-max" onclick="sendBleCmd('SCREEN_NEXT')">AVANTI ⏩</button>
+            </div>
+            <div class="screen-grid">
+                <button class="screen-card-btn active" onclick="setScreen(0, this)">
+                    <span class="screen-title">1. Piega</span>
+                    <span class="screen-desc">Arco di piega stile MotoGP, picchi SX/DX e gas</span>
+                </button>
+                <button class="screen-card-btn" onclick="setScreen(1, this)">
+                    <span class="screen-title">2. G-G</span>
+                    <span class="screen-desc">Cerchio di attrito con scia e inviluppo dei G</span>
+                </button>
+                <button class="screen-card-btn" onclick="setScreen(2, this)">
+                    <span class="screen-title">3. Sessione</span>
+                    <span class="screen-desc">Pieghe massime, frenata e accelerazione</span>
+                </button>
+                <button class="screen-card-btn" onclick="setScreen(3, this)">
+                    <span class="screen-title">4. Navigatore</span>
+                    <span class="screen-desc">Indicazioni di Google Maps con freccia della manovra</span>
+                </button>
+                <button class="screen-card-btn" onclick="setScreen(4, this)">
+                    <span class="screen-title">5. Viaggio</span>
+                    <span class="screen-desc">Velocità GPS, km, tempo, media, autonomia e manutenzione</span>
+                </button>
+                <button class="screen-card-btn" onclick="setScreen(5, this)">
+                    <span class="screen-title">6. 0-100 km/h</span>
+                    <span class="screen-desc">Cronometro di accelerazione con record</span>
+                </button>
+                <button class="screen-card-btn" onclick="setScreen(6, this)">
+                    <span class="screen-title">7. Impostazioni</span>
+                    <span class="screen-desc">Zero piega, registrazione, calibrazione, luminosità e orientamento</span>
+                </button>
+            </div>
+        </div>
+        <div class="card">
+            <div class="lean-header" style="margin-bottom:6px;">
+                <span>Orientamento display rettangolare</span>
+            </div>
+            <div style="font-size:11px; color:var(--text-muted, #8a93a6); margin-bottom:10px;">Il display si riavvia con il nuovo orientamento. Si cambia anche dalla sua pagina Impostazioni.</div>
+            <div class="screen-grid">
+                <button class="screen-card-btn" onclick="sendBleCmd('ROTATE:rect,0')"><span class="screen-title">Verticale</span></button>
+                <button class="screen-card-btn" onclick="sendBleCmd('ROTATE:rect,1')"><span class="screen-title">Orizzontale 90°</span></button>
+                <button class="screen-card-btn" onclick="sendBleCmd('ROTATE:rect,2')"><span class="screen-title">Verticale capovolto</span></button>
+                <button class="screen-card-btn" onclick="sendBleCmd('ROTATE:rect,3')"><span class="screen-title">Orizzontale 270°</span></button>
+            </div>
+        </div>
+        <div class="card">
+            <div class="lean-header" style="margin-bottom:6px;">
+                <span>Luminosità dei display</span><span id="dispBrightLbl">100%</span>
+            </div>
+            <input id="dispBright" type="range" min="10" max="100" step="5" value="100" style="width:100%;"
+                   oninput="document.getElementById('dispBrightLbl').textContent=this.value+'%'" onchange="displaySend()">
+            <div style="font-size:11px;color:var(--text-dim);margin:10px 0 4px;">Modalità notte (luminosità ridotta)</div>
+            <select id="dispNight" onchange="displaySend()" style="width:100%;padding:8px;border-radius:8px;background:transparent;color:var(--text-main);border:1px solid var(--border-card);">
+                <option value="0">Automatica: dal tramonto all'alba</option>
+                <option value="1">Sempre attiva</option>
+                <option value="2">Disattivata</option>
+            </select>
+            <div style="font-size:11px;color:var(--text-dim);margin:10px 0 4px;">Unità di misura</div>
+            <select id="unitsSel" onchange="unitsChanged()" style="width:100%;padding:8px;border-radius:8px;background:transparent;color:var(--text-main);border:1px solid var(--border-card);">
+                <option value="km">Chilometri (km/h)</option>
+                <option value="mi">Miglia (mph)</option>
+            </select>
+            <div style="font-size:11px;color:var(--text-dim);margin-top:8px;">Se il touch di un display non è preciso: tieni premuto lo schermo 3 secondi e tocca i tre mirini.</div>
+        </div>
+        <div class="card">
+            <div class="lean-header" style="margin-bottom:6px;"><span>Moto e display</span></div>
+            <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">Con più moto OmniRide vicine ogni display ascolta solo la centralina a cui è abbinato. La moto da collegare la scegli nella finestra Bluetooth del browser (il nome contiene il modello impostato).</div>
+            <button class="action-btn" style="width:100%;" onclick="pairDisplay()">Abbina un display</button>
+            <div id="pairInfo" style="font-size:12px;margin-top:8px;"></div>
+        </div>
+
+        <div class="card">
+            <div class="sec">Calibrazione centralina</div>
+<!-- Calibrazione TPS Gas -->
+        <div class="card">
+            <div class="lean-header" style="margin-bottom:8px;">
+                <span>Calibrazione Manuale Gas (TPS)</span>
+            </div>
+            <div class="setting-row">
+                <div class="setting-info">
+                    <span class="setting-name">Calibra Zero Gas (Minimo)</span>
+                    <span class="setting-hint">Manopola rilasciata a gas completamente chiuso</span>
+                </div>
+                <button class="toggle-btn on" onclick="sendBleCmd('CALIB_TPS_ZERO')">SALVA MIN</button>
+            </div>
+            <div class="setting-row">
+                <div class="setting-info">
+                    <span class="setting-name">Calibra 100% Gas (WOT)</span>
+                    <span class="setting-hint">Ruota la manopola a tutto gas e premi</span>
+                </div>
+                <button class="toggle-btn on" onclick="sendBleCmd('CALIB_TPS_WOT')">SALVA MAX</button>
+            </div>
+        </div>
+<!-- Calibrazione IMU & Montaggio -->
+        <div class="card">
+            <div class="lean-header" style="margin-bottom:8px;">
+                <span>Calibrazione IMU & Montaggio</span>
+            </div>
+            
+            <div class="setting-row">
+                <div class="setting-info">
+                    <span class="setting-name">Zero Tare Moto</span>
+                    <span class="setting-hint">Salva l'assetto corrente a riposo nella Flash</span>
+                </div>
+                <button class="toggle-btn on" onclick="sendBleCmd('TARE')">SALVA ZERO</button>
+            </div>
+
+            <div class="setting-row">
+                <div class="setting-info">
+                    <span class="setting-name">Ripristina Tare Fabbrica</span>
+                    <span class="setting-hint">Riporta lo zero a 0.0°</span>
+                </div>
+                <button class="toggle-btn" onclick="sendBleCmd('RESET_TARE')">RESET</button>
+            </div>
+
+            <div class="setting-row">
+                <div class="setting-info">
+                    <span class="setting-name">Inverti Rollio (SX / DX)</span>
+                    <span class="setting-hint">Inverte la direzione visiva della piega</span>
+                </div>
+                <button class="toggle-btn" onclick="sendBleCmd('INV_ROLL')">INVERTI</button>
+            </div>
+
+            <div class="setting-row">
+                <div class="setting-info">
+                    <span class="setting-name">Scambia Assi XY IMU</span>
+                    <span class="setting-hint">Ruota l'orientamento di montaggio a 90°</span>
+                </div>
+                <button class="toggle-btn" onclick="sendBleCmd('SWAP_XY')">SCAMBIA XY</button>
+            </div>
+
+            <div class="setting-row">
+                <div class="setting-info">
+                    <span class="setting-name">Inverti Accelerazione (ACC/BRK)</span>
+                    <span class="setting-hint">Inverte il verso di marcia avanti/dietro</span>
+                </div>
+                <button class="toggle-btn" onclick="sendBleCmd('INV_ACCEL')">INVERTI ACC</button>
+            </div>
+        </div>
+        </div>
+<!-- AUTO-CALIBRAZIONE DINAMICA 3 MINUTI -->
+        <div class="card autocal-card">
+            <div class="lean-header" style="margin-bottom:6px;">
+                <span style="color:var(--accent-purple);font-weight:900;">🚀 Auto-Calibrazione in Marcia (3 Min)</span>
+                <span id="lblAutoCalStatus" style="color:var(--accent-purple);font-size:10px;">Pronto</span>
+            </div>
+            <p style="font-size:10px;color:var(--text-dim);line-height:1.4;">
+                Guida per 3 minuti: il sensore calcola in tempo reale lo Zero di Piega nei rettilinei, l'assetto di crociera e il range Min/Max del TPS, salvando tutto in Flash.
+            </p>
+            
+            <div class="autocal-progress-bar">
+                <div class="autocal-progress-fill" id="autoCalFill"></div>
+            </div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+                <div style="font-size:10px;font-weight:700;color:var(--text-dim);">
+                    <span id="lblAutoCalTimer">Tempo: 180s</span> • <span id="lblAutoCalSamples">0 campioni</span>
+                </div>
+                <button class="toggle-btn purple" id="btnAutoCalToggle" onclick="toggleAutoCal()">AVVIA 3 MIN</button>
+            </div>
+        </div>
+<!-- Compass Calibration Action Card -->
+        <div class="card" style="padding:12px; display:flex; flex-direction:column; gap:8px;">
+            <div class="lean-header" style="width:100%; margin-bottom:0;">
+                <span>🎯 Calibrazione Magnetica Hard-Iron</span>
+                <span id="lblMagCalTimer" style="color:var(--brand-cyan); font-weight:700; font-size:11px;">Pronta</span>
+            </div>
+            <div style="font-size:11px; color:var(--text-dim); line-height:1.4;">
+                Se la bussola non ruota liberamente a 360°, avvia la calibrazione e ruota la schedina lentamente in tutte le direzioni (a cerchio o a forma di 8) per azzerare l'offset dei componenti metallici.
+            </div>
+            <button class="toggle-btn" id="btnMagCal" style="width:100%; padding:10px; font-weight:800;" onclick="toggleMagCal()">
+                AVVIA CALIBRAZIONE BUSSOLA (15s)
+            </button>
+        </div>
+
+        <div class="card">
+            <div class="sec">Registrazione sulla centralina</div>
+            <div class="hint">Salva i dati nella memoria della centralina (anche senza telefono). Azzera record riporta a zero i picchi di piega e G.</div>
+            <div class="grid3">
+                <button class="btn-t" onclick="sendBleCmd('REC_START')">Avvia</button>
+                <button class="btn-t" onclick="sendBleCmd('REC_STOP')">Ferma</button>
+                <button class="btn-t" onclick="if(confirm('Azzerare i record?')) sendBleCmd('RESET_RECORDS')">Azzera record</button>
+            </div>
+        </div>
+<div class="card">
+            <div class="lean-header" style="margin-bottom:8px;">
+                <span>Smart HUD: Notifiche & Navigazione Display</span>
+                <span class="lean-badge" style="background:#00d4ff;color:#000;">TEST LIVE</span>
+            </div>
+            <div style="font-size:11px;color:var(--text-dim);margin-bottom:10px;">
+                Testa in tempo reale gli avvisi su cruscotto rotondo wireless (ESP-NOW):
+            </div>
+            <div style="display:flex;gap:6px;margin-bottom:8px;">
+                <button class="toggle-btn" style="flex:1;background:linear-gradient(135deg,#ff1744,#b70024);color:#fff;" onclick="sendBleCmd('CALL:Marco Rossi')">📞 CHIAMATA</button>
+                <button class="toggle-btn" style="flex:1;background:linear-gradient(135deg,#00e676,#00a84e);color:#0a0e17;" onclick="sendBleCmd('WA:Chiara:Ci vediamo alle 17:30?')">💬 WHATSAPP</button>
+            </div>
+            <div style="display:flex;gap:6px;margin-bottom:8px;">
+                <button class="toggle-btn" style="flex:1;background:#26354d;color:#fff;" onclick="sendBleCmd('NAV:250,3,0,65,VIA ROMA')">🧭 SVOLTA DX (250m)</button>
+                <button class="toggle-btn" style="flex:1;background:#26354d;color:#fff;" onclick="sendBleCmd('NAV:120,8,2,42,USCITA 2 COMO')">🔄 ROTONDA (120m)</button>
+            </div>
+            <div style="display:flex;gap:6px;">
+                <button class="toggle-btn" style="flex:1;background:#182232;color:var(--text-dim);" onclick="sendBleCmd('CALL_END')">❌ CHIUDI POPUP</button>
+            </div>
+        </div>
+<!-- AGGIORNAMENTO FIRMWARE VIA BLUETOOTH -->
+        <div class="card">
+            <div class="lean-header" style="margin-bottom:6px;"><span>⬆️ Aggiornamento firmware</span></div>
+            <p style="font-size:10px;color:var(--text-dim);line-height:1.4;margin-bottom:8px;">
+                Il browser scarica l'ultima versione pubblicata e la invia via Bluetooth a display e centralina.
+                Tieni la pagina aperta e il telefono vicino alla moto: circa 1-2 minuti per scheda.
+            </p>
+            <div id="fwStatus" style="font-size:12px;line-height:1.5;white-space:pre-line;margin-bottom:8px;">Tocca CONTROLLA per vedere se ci sono aggiornamenti.</div>
+            <div class="autocal-progress-bar" id="fwBar" style="display:none;margin-bottom:8px;">
+                <div class="autocal-progress-fill" id="fwFill" style="width:0%"></div>
+            </div>
+            <div style="display:flex;gap:6px;">
+                <button class="toggle-btn" style="flex:1;" id="btnFwCheck" onclick="fwCheck()">CONTROLLA</button>
+                <button class="toggle-btn" style="flex:1;" id="btnFwUpdate" onclick="fwUpdateAll()" disabled>AGGIORNA</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="sec">App Android</div>
+            <div class="hint">L'app fa tutto quello che fa questa pagina, più navigazione di Google Maps sul cruscotto, chiamate, WhatsApp, SOS via SMS e funzionamento in background.</div>
+            <a class="btn-t" href="https://github.com/Silver20000/OmniRide/releases/latest/download/omniride.apk">Scarica omniride.apk</a>
+        </div>
+        <div class="version-line">OmniRide · web app</div>
+    </div>
+</div>
+
+<nav class="bottom-nav">
+    <button class="tab-btn active" onclick="switchTab('tabBike', this)"><span class="nav-ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M20.38 8.57l-1.23 1.85a8 8 0 0 1-.22 7.58H5.07A8 8 0 0 1 15.58 6.85l1.85-1.23A10 10 0 0 0 3.35 19a2 2 0 0 0 1.72 1h13.85a2 2 0 0 0 1.74-1 10 10 0 0 0-.27-10.44zm-9.79 6.84a2 2 0 0 0 2.83 0l5.66-8.49-8.49 5.66a2 2 0 0 0 0 2.83z"/></svg></span><span>Moto</span></button>
+    <button class="tab-btn" onclick="switchTab('tabSos', this)"><span class="nav-ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z"/></svg></span><span>SOS</span></button>
+    <button class="tab-btn" onclick="switchTab('tabRides', this)"><span class="nav-ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg></span><span>Giri</span></button>
+    <button class="tab-btn" onclick="switchTab('tabMore', this)"><span class="nav-ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/></svg></span><span>Altro</span></button>
+</nav>
+
+<script>
+    const SERVICE_UUID = "00001ff8-0000-1000-8000-00805f9b34fb";
+    const CHAR_DATA_UUID = "00000002-0000-1000-8000-00805f9b34fb";
+    const CHAR_CMD_UUID = "00000001-0000-1000-8000-00805f9b34fb";
+    const CHAR_EVENT_UUID = "00000003-0000-1000-8000-00805f9b34fb";
+    const CHAR_OTA_UUID = "00000004-0000-1000-8000-00805f9b34fb";
+
+    let bleDevice = null;
+    let bleServer = null;
+    let bleChar = null;
+    let bleCmdChar = null;
+    let bleEventChar = null;
+    let bleOtaChar = null;
+    let isConnected = false;
+
+    let state = {
+        roll: 0, pitch: 0, gLat: 0, gLong: 0, rollRate: 0, yawRate: 0, altitude: 0, tps: 0,
+        autocalPct: 0, autocalSamples: 0,
+        heading: 0, cardinal: 'N', headingValid: false, dPlus: 0, tempC: 0,
+        maxRollL: 0, maxRollR: 0, maxBrake: 0, maxAccel: 0, warningThreshold: 48.0
+    };
+
+    let gRotationMode = 1; // 1 = -90 deg (vertical accel)
+    let autoCycleState = false;
+    let autoCalRunning = false;
+
+    let isRecording = false;
+    let recordedData = [];
+    let recStartTime = 0;
+
+    let inCorner = false;
+    let currentCorner = { isLeft: false, peakRoll: 0, peakRate: 0, startTime: 0 };
+    let cornerHistory = [];
+
+    const graphHistory = [];
+    const MAX_GRAPH_PTS = 120;
+    const gTrail = [];
+
+    // GPS & Map State
+    let map = null;
+    let bikeMarker = null;
+    let gpsWatchId = null;
+    let followBike = true;
+    let totalGpsDistM = 0;
+    let lastGpsPos = null;
+    let gpsTrackSegments = [];
+    let currentGpsState = { lat: 0, lon: 0, speedKmh: 0, altitude: 0, heading: 0, accuracy: 0 };
+    
+    let mapLayers = [];
+    let currentLayerIndex = 0;
+
+    // Tab Switching
+    const TAB_SUBTITLES = { tabBike: null, tabSos: "Allarme caduta", tabRides: "Registrazioni e mappa pieghe", tabMore: "Impostazioni e strumenti" };
+    function switchTab(tabId, btn) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        btn.classList.add('active');
+        let bike = "";
+        try { bike = localStorage.getItem("RIDELINK_BIKE_NAME") || ""; } catch (e) {}
+        document.getElementById("pageSubtitle").textContent = TAB_SUBTITLES[tabId] || bike || "La tua moto";
+        window.scrollTo(0, 0);
+
+        if (tabId === 'tabRides') {
+            setTimeout(() => {
+                if (!map) initMap();
+                else map.invalidateSize();
+            }, 100);
+        }
+    }
+
+    // Link status shown like in the app: pill in the header + connection card
+    function setConnUi(state) {
+        const st = {
+            off:          ["#ff1744", "Non collegata", "Moto non collegata", "Accendi la moto e tocca il pulsante (serve Chrome con il Bluetooth attivo).", "Collega la moto"],
+            connecting:   ["#ffb300", "Ricerca...", "Ricerca della moto", "Scegli la tua moto nella finestra del browser: il nome contiene il modello impostato.", "Collega la moto"],
+            reconnecting: ["#ffb300", "Ricerca...", "Collegamento perso", "Mi ricollego appena la centralina torna raggiungibile (anche dopo lo standby).", "Scollega"],
+            connected:    ["#00e676", "Collegata", "Moto collegata", "Dati in diretta. Tieni questa pagina aperta: il browser non lavora in background.", "Scollega"],
+        }[state];
+        document.getElementById("connDot").style.background = st[0];
+        document.getElementById("connPillText").textContent = st[1];
+        document.getElementById("connTitle").textContent = st[2];
+        document.getElementById("connDetail").textContent = st[3];
+        document.getElementById("btnConnectText").textContent = st[4];
+        document.getElementById("btnConnect").classList.toggle("secondary", state === "connected" || state === "reconnecting");
+    }
+    document.addEventListener("DOMContentLoaded", () => setConnUi("off"));
+
+    // Bluetooth Connection
+    async function toggleBluetooth() {
+        if (isConnected) {
+            if (bleDevice && bleDevice.gatt.connected) {
+                userClosed = true;   // "Scollega": no automatic reconnection
+                bleDevice.gatt.disconnect();
+            }
+            return;
+        }
+
+        try {
+            setConnUi("connecting");
+            bleDevice = await navigator.bluetooth.requestDevice({
+                filters: [
+                    { namePrefix: 'OmniRide' },
+                    { namePrefix: 'RideLink' },   // bikes not updated yet
+                    { services: [SERVICE_UUID] }
+                ],
+                optionalServices: [SERVICE_UUID]
+            });
+
+            bleDevice.addEventListener('gattserverdisconnected', onDisconnected);
+            setConnUi("connecting");
+
+            bleServer = await bleDevice.gatt.connect();
+            const service = await bleServer.getPrimaryService(SERVICE_UUID);
+            bleChar = await service.getCharacteristic(CHAR_DATA_UUID);
+
+            try {
+                bleCmdChar = await service.getCharacteristic(CHAR_CMD_UUID);
+            } catch(e) { console.warn("Cmd characteristic optional:", e); }
+            await setupEventChannels(service);
+
+            await bleChar.startNotifications();
+            bleChar.addEventListener('characteristicvaluechanged', handleBleData);
+
+            isConnected = true;
+            setConnUi("connected");
+            sendBikeNameIfSet();
+            if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(()=>{});
+        } catch (err) {
+            console.error("BLE Error:", err);
+            onDisconnected();
+        }
+    }
+
+    let reconnectTimeout = null;
+    let userClosed = false;
+
+    function onDisconnected() {
+        if (isConnected) parkSave();
+        isConnected = false;
+        if (userClosed) { userClosed = false; setConnUi("off"); return; }
+        setConnUi(bleDevice ? "reconnecting" : "off");
+        
+        // Riconnessione automatica immediata appena la scheda viene riaccesa!
+        if (bleDevice && !reconnectTimeout) {
+            reconnectTimeout = setTimeout(attemptAutoReconnect, 1500);
+        }
+    }
+
+    async function attemptAutoReconnect() {
+        reconnectTimeout = null;
+        if (!bleDevice || isConnected) return;
+        try {
+
+            bleServer = await bleDevice.gatt.connect();
+            const service = await bleServer.getPrimaryService(SERVICE_UUID);
+            bleChar = await service.getCharacteristic(CHAR_DATA_UUID);
+            try {
+                bleCmdChar = await service.getCharacteristic(CHAR_CMD_UUID);
+            } catch(e) {}
+            await setupEventChannels(service);
+            await bleChar.startNotifications();
+            bleChar.addEventListener('characteristicvaluechanged', handleBleData);
+            isConnected = true;
+            setConnUi("connected");
+            sendBikeNameIfSet();
+            console.log("[BLE] Riconnesso automaticamente!");
+        } catch (err) {
+            console.log("[BLE] Attesa riaccensione scheda...", err);
+            setConnUi("reconnecting");
+            reconnectTimeout = setTimeout(attemptAutoReconnect, 2000);
+        }
+    }
+
+    // Bike name shown on the displays' welcome screen (same setting as the Android app)
+    const BIKE_NAME_KEY = "RIDELINK_BIKE_NAME";
+    function loadBikeName() {
+        const el = document.getElementById("inpBikeName");
+        try { if (el) el.value = localStorage.getItem(BIKE_NAME_KEY) || ""; } catch (e) {}
+    }
+    function saveBikeName() {
+        const name = (document.getElementById("inpBikeName").value || "").replace(/[,\r\n]/g, " ").trim().slice(0, 24);
+        localStorage.setItem(BIKE_NAME_KEY, name);
+        if (isConnected && bleCmdChar) sendBleCmd("BIKE:" + name);
+        else alert("Salvato: verra' inviato alla moto al prossimo collegamento");
+    }
+    function sendBikeNameIfSet() {
+        let name = null;
+        try { name = localStorage.getItem(BIKE_NAME_KEY); } catch (e) {}
+        if (name !== null && bleCmdChar) sendBleCmd("BIKE:" + name);
+    }
+    document.addEventListener("DOMContentLoaded", loadBikeName);
+
+    // Events from the master (crash alarm, firmware update) and firmware channel
+    const bleEventWaiters = [];
+    async function setupEventChannels(service) {
+        bleEventChar = null;
+        bleOtaChar = null;
+        try {
+            bleEventChar = await service.getCharacteristic(CHAR_EVENT_UUID);
+            await bleEventChar.startNotifications();
+            bleEventChar.addEventListener('characteristicvaluechanged', (e) => {
+                const text = new TextDecoder().decode(e.target.value).trim();
+                bleEventWaiters.slice().forEach(w => w(text));
+            });
+        } catch (e) { console.warn("Event channel not available (old firmware?)", e); }
+        try { bleOtaChar = await service.getCharacteristic(CHAR_OTA_UUID); } catch (e) {}
+    }
+
+    // Resolves with handler(text) as soon as it returns something other than undefined
+    function waitBleEvent(handler, timeoutMs) {
+        return new Promise((resolve, reject) => {
+            const w = (text) => {
+                const r = handler(text);
+                if (r !== undefined) { done(); resolve(r); }
+            };
+            const timer = setTimeout(() => { done(); reject(new Error("timeout")); }, timeoutMs);
+            function done() {
+                clearTimeout(timer);
+                const i = bleEventWaiters.indexOf(w);
+                if (i >= 0) bleEventWaiters.splice(i, 1);
+            }
+            bleEventWaiters.push(w);
+        });
+    }
+
+    // ---------------- Trip computer, maintenance, parking, 0-100 (same as the Android app)
+    // Speed and distance from the phone GPS (no Google Maps); sent to the master once a
+    // second ("TRIP:"), taps on the displays come back as "TRIPCMD:" events.
+    const TRIP_KEY = "RIDELINK_TRIP";
+    const PARK_KEY = "RIDELINK_PARKING";
+    const TRIP_UNKNOWN = -99999;
+    let trip = { tripM: 0, rideS: 0, odoKm: 0, rangeKm: 0, chainEvery: 600, serviceEvery: 10000,
+                 fillOdo: 0, chainOdo: 0, serviceOdo: 0, launchLast: 0, launchBest: 0 };
+    let tripFix = null, tripFixMs = 0, tripSpeed = 0, tripWatch = null, launchState = 0, tripLastSave = 0;
+
+    // Kilometres or miles: stored in km, converted to show and to send (displays change labels)
+    const MI_PER_KM = 0.621371;
+    const uK = () => trip.imperial ? MI_PER_KM : 1;
+    const uDist = () => trip.imperial ? "mi" : "km";
+    const uSpeed = () => trip.imperial ? "mph" : "km/h";
+    const inUnit = (km) => Math.round(km * uK());
+
+    function tripFillIntervals() {
+        document.getElementById("tripRange").value = inUnit(trip.rangeKm);
+        document.getElementById("tripChain").value = inUnit(trip.chainEvery);
+        document.getElementById("tripService").value = inUnit(trip.serviceEvery);
+    }
+
+    function tripLoad() {
+        try { Object.assign(trip, JSON.parse(localStorage.getItem(TRIP_KEY) || "{}")); } catch (e) {}
+        document.getElementById("unitsSel").value = trip.imperial ? "mi" : "km";
+        tripFillIntervals();
+    }
+
+    function unitsChanged() {
+        trip.imperial = document.getElementById("unitsSel").value === "mi";
+        tripSave();
+        tripFillIntervals();
+        tripRender();
+    }
+    function tripSave() { try { localStorage.setItem(TRIP_KEY, JSON.stringify(trip)); } catch (e) {} }
+
+    function tripStartGps() {
+        if (tripWatch !== null || !navigator.geolocation) return;
+        tripWatch = navigator.geolocation.watchPosition(tripOnPosition, () => {},
+            { enableHighAccuracy: true, maximumAge: 1000, timeout: 15000 });
+    }
+
+    function tripOnPosition(pos) {
+        const now = Date.now();
+        const c = pos.coords;
+        tripSpeed = c.speed ? c.speed * 3.6 : 0;
+        if (tripFix && c.accuracy < 25 && tripFix.accuracy < 25) {
+            const dt = now - tripFixMs;
+            const d = calculateDistance(tripFix.lat, tripFix.lon, c.latitude, c.longitude);
+            if (dt > 0 && dt < 10000 && tripSpeed > 3 && d < 120 * dt / 1000) {
+                trip.tripM += d;
+                trip.odoKm += d / 1000;
+                trip.rideS += Math.round(dt / 1000);
+            }
+        }
+        tripFix = { lat: c.latitude, lon: c.longitude, accuracy: c.accuracy };
+        tripFixMs = now;
+        if (now - tripLastSave > 30000) { tripLastSave = now; tripSave(); }
+    }
+
+    const tripHasFix = () => tripFix && Date.now() - tripFixMs < 3000;
+    const tripAvg = () => trip.rideS > 0 ? trip.tripM / trip.rideS * 3.6 : 0;
+    const tripFuelLeft = () => trip.rangeKm > 0 ? Math.round(trip.rangeKm - (trip.odoKm - trip.fillOdo)) : TRIP_UNKNOWN;
+    const tripChainLeft = () => trip.chainEvery > 0 ? Math.round(trip.chainEvery - (trip.odoKm - trip.chainOdo)) : TRIP_UNKNOWN;
+    const tripServiceLeft = () => trip.serviceEvery > 0 ? Math.round(trip.serviceEvery - (trip.odoKm - trip.serviceOdo)) : TRIP_UNKNOWN;
+
+    // Sun altitude (low-precision formula), night when below the horizon
+    function sunAltitudeDeg(lat, lon, t) {
+        const r = Math.PI / 180, d = t / 86400000 + 2440587.5 - 2451545.0;
+        const g = ((357.529 + 0.98560028 * d) % 360) * r;
+        const q = (280.459 + 0.98564736 * d) % 360;
+        const l = ((q + 1.915 * Math.sin(g) + 0.020 * Math.sin(2 * g)) % 360) * r;
+        const e = (23.439 - 0.00000036 * d) * r;
+        const dec = Math.asin(Math.sin(e) * Math.sin(l));
+        const ra = Math.atan2(Math.cos(e) * Math.sin(l), Math.cos(l));
+        const gmst = (18.697374558 + 24.06570982441908 * d) % 24;
+        const ha = (gmst * 15 + lon) * r - ra;
+        const la = lat * r;
+        return Math.asin(Math.sin(la) * Math.sin(dec) + Math.cos(la) * Math.cos(dec) * Math.cos(ha)) / r;
+    }
+    const tripIsNight = () => tripFix ? sunAltitudeDeg(tripFix.lat, tripFix.lon, Date.now()) < -0.833 : false;
+
+    // Writes queued one at a time (Web Bluetooth rejects overlapping writes)
+    let bleWriteChain = Promise.resolve();
+    function bleWriteQuiet(cmd) {
+        if (!isConnected || !bleCmdChar) return;
+        bleWriteChain = bleWriteChain.then(() => bleCmdChar.writeValue(new TextEncoder().encode(cmd))).catch(() => {});
+    }
+
+    function tripTick() {
+        if (isConnected) {
+            tripStartGps();
+            const fix = tripHasFix();
+            const flags = (fix ? 2 : 0) | (tripIsNight() ? 4 : 0) | (trip.imperial ? 8 : 0);
+            const k = uK();
+            const conv = (km) => km === TRIP_UNKNOWN ? TRIP_UNKNOWN : Math.round(km * k);
+            bleWriteQuiet(`TRIP:${fix ? Math.round(tripSpeed * 10 * k) : 0},${Math.round(trip.tripM * k)},${trip.rideS},` +
+                `${Math.round(tripAvg() * 10 * k)},${conv(tripFuelLeft())},${conv(tripChainLeft())},${conv(tripServiceLeft())},${flags}`);
+        }
+        tripRender();
+    }
+
+    function tripRender() {
+        const fix = tripHasFix();
+        document.getElementById("tripGps").textContent = fix ? "GPS ok" : (tripWatch !== null ? "cerco il GPS..." : "GPS spento");
+        document.getElementById("tripSpeed").textContent = fix ? `${(tripSpeed * uK()).toFixed(0)} ${uSpeed()}` : "--";
+        document.getElementById("tripDist").textContent = `${(trip.tripM / 1000 * uK()).toFixed(1)} ${uDist()}`;
+        const m = Math.floor(trip.rideS / 60);
+        document.getElementById("tripTime").textContent = `${Math.floor(m / 60)}:${String(m % 60).padStart(2, "0")} · ${(tripAvg() * uK()).toFixed(0)}`;
+        const fuel = tripFuelLeft(), chain = tripChainLeft(), service = tripServiceLeft();
+        const el = document.getElementById("tripMaint");
+        el.textContent =
+            `Autonomia: ${fuel === TRIP_UNKNOWN ? "non impostata" : Math.max(0, inUnit(fuel)) + " " + uDist()}\n` +
+            `Catena: ${chain === TRIP_UNKNOWN ? "promemoria spento" : chain <= 0 ? "da ingrassare!" : "tra " + inUnit(chain) + " " + uDist()}\n` +
+            `Tagliando: ${service === TRIP_UNKNOWN ? "promemoria spento" : service <= 0 ? "scaduto!" : "tra " + inUnit(service) + " " + uDist()}`;
+        const urgent = (chain !== TRIP_UNKNOWN && chain <= 0) || (service !== TRIP_UNKNOWN && service <= 0) || (fuel !== TRIP_UNKNOWN && fuel < 30);
+        el.style.color = urgent ? "var(--accent-amber, #FFB300)" : "var(--text-main)";
+
+        const states = { 1: "Armato: fermati", 2: "PRONTO: parti quando vuoi", 3: "In corso...", 5: "Annullata: riprova" };
+        let s = states[launchState] || (trip.launchLast ? `Ultima: ${(trip.launchLast / 1000).toFixed(2)} s` : "Pronto da armare");
+        if (trip.launchBest) s += `  ·  Record: ${(trip.launchBest / 1000).toFixed(2)} s`;
+        document.getElementById("launchInfo").textContent = s;
+        document.getElementById("launchBtn").textContent = launchState >= 1 && launchState <= 3 ? "Annulla" : "Arma il cronometro";
+
+        try {
+            const p = JSON.parse(localStorage.getItem(PARK_KEY) || "null");
+            if (p) document.getElementById("parkInfo").textContent =
+                `Moto lasciata il ${new Date(p.time).toLocaleString("it-IT", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })} (precisione ${Math.round(p.acc)} m)`;
+        } catch (e) {}
+    }
+
+    function tripDo(what) {
+        if (what === "fuel") trip.fillOdo = trip.odoKm;
+        else if (what === "trip") { trip.tripM = 0; trip.rideS = 0; }
+        else if (what === "chain") trip.chainOdo = trip.odoKm;
+        else if (what === "service") trip.serviceOdo = trip.odoKm;
+        tripSave();
+        tripRender();
+    }
+
+    function tripConfirm(what) {
+        const q = { fuel: "Pieno fatto?", trip: "Azzerare il viaggio?", chain: "Catena ingrassata?", service: "Tagliando fatto?" };
+        if (confirm(q[what])) tripDo(what);
+    }
+
+    function tripSaveIntervals() {
+        const v = (id) => Math.round(Math.max(0, parseInt(document.getElementById(id).value, 10) || 0) / uK());
+        trip.rangeKm = v("tripRange");
+        trip.chainEvery = v("tripChain");
+        trip.serviceEvery = v("tripService");
+        tripSave();
+        tripRender();
+    }
+
+    function parkSave() {
+        if (!tripFix || Date.now() - tripFixMs > 600000 || tripSpeed > 8) return;
+        try { localStorage.setItem(PARK_KEY, JSON.stringify({ lat: tripFix.lat, lon: tripFix.lon, acc: tripFix.accuracy, time: Date.now() })); } catch (e) {}
+    }
+
+    function parkOpen(walk) {
+        let p = null;
+        try { p = JSON.parse(localStorage.getItem(PARK_KEY) || "null"); } catch (e) {}
+        if (!p) { alert("Nessun parcheggio salvato"); return; }
+        const url = walk
+            ? `https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lon}&travelmode=walking`
+            : `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lon}`;
+        window.open(url, "_blank");
+    }
+
+    function pairDisplay() {
+        if (!isConnected) { alert("Collega prima la moto"); return; }
+        sendBleCmd("PAIR_START");
+        document.getElementById("pairInfo").textContent =
+            "Entro 60 secondi, sul display: Impostazioni > scheda DISPLAY > Abbina centralina (tocca due volte).";
+    }
+
+    function launchToggle() {
+        const active = launchState >= 1 && launchState <= 3;
+        sendBleCmd(active ? "LAUNCH_CANCEL" : "LAUNCH_ARM");
+    }
+
+    // Events from the master for these features (registered once, never removed)
+    bleEventWaiters.push((ev) => {
+        if (ev.startsWith("TRIPCMD:")) tripDo(ev.substring(8));
+        else if (ev.startsWith("PAIRED:")) document.getElementById("pairInfo").textContent =
+            (ev.endsWith("rect") ? "Display rettangolare" : "Display tondo") + " abbinato a questa moto.";
+        else if (ev === "SLEEP") parkSave();
+        else if (ev.startsWith("LAUNCH_STATE:")) launchState = parseInt(ev.substring(13), 10) || 0;
+        else if (ev.startsWith("LAUNCH:")) {
+            const ms = parseInt(ev.substring(7), 10) || 0;
+            trip.launchLast = ms;
+            if (!trip.launchBest || ms < trip.launchBest) trip.launchBest = ms;
+            tripSave();
+        }
+        return undefined;
+    });
+
+    // Display brightness / night mode
+    const DISPLAY_KEY = "RIDELINK_DISPLAY";
+    function displayLoad() {
+        let d = { bright: 100, night: 0 };
+        try { Object.assign(d, JSON.parse(localStorage.getItem(DISPLAY_KEY) || "{}")); } catch (e) {}
+        document.getElementById("dispBright").value = d.bright;
+        document.getElementById("dispBrightLbl").textContent = d.bright + "%";
+        document.getElementById("dispNight").value = d.night;
+    }
+    function displaySend() {
+        const b = parseInt(document.getElementById("dispBright").value, 10);
+        const n = parseInt(document.getElementById("dispNight").value, 10);
+        try { localStorage.setItem(DISPLAY_KEY, JSON.stringify({ bright: b, night: n })); } catch (e) {}
+        sendBleCmd(`BRIGHT:${b},${n}`);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        tripLoad();
+        displayLoad();
+        tripRender();
+        setInterval(tripTick, 1000);
+    });
+
+    // ---------------- Firmware update over Bluetooth (same flow as the Android app)
+    const FW_BASE = "https://raw.githubusercontent.com/Silver20000/OmniRide/firmware/";
+    const FW_LABELS = { round: "Display tondo", rect: "Display rettangolare", master: "Centralina" };
+    let fwManifest = null;
+    let fwInstalled = {};
+
+    function fwSetStatus(text, isError) {
+        const el = document.getElementById("fwStatus");
+        el.textContent = text;
+        el.style.color = isError ? "var(--accent-red)" : "var(--text-main)";
+    }
+
+    function fwCompare(a, b) {
+        const x = String(a).replace(/[^0-9.]/g, "").split("."), y = String(b).replace(/[^0-9.]/g, "").split(".");
+        for (let i = 0; i < Math.max(x.length, y.length); i++) {
+            const xi = parseInt(x[i] || "0", 10), yi = parseInt(y[i] || "0", 10);
+            if (xi !== yi) return xi < yi ? -1 : 1;
+        }
+        return 0;
+    }
+
+    function fwToUpdate() {
+        if (!fwManifest) return [];
+        return ["round", "rect", "master"].filter(id =>
+            fwInstalled[id] && fwManifest.boards[id] && fwCompare(fwInstalled[id], fwManifest.version) < 0);
+    }
+
+    function fwSummary() {
+        let t = "Ultima versione: " + (fwManifest ? fwManifest.version : "-");
+        for (const id of ["master", "round", "rect"]) {
+            const v = fwInstalled[id];
+            t += "\n" + FW_LABELS[id] + ": " + (!v ? "non trovato" : (fwToUpdate().includes(id) ? v + "  →  da aggiornare" : v + "  ✓"));
+        }
+        return t;
+    }
+
+    async function fwCheck() {
+        if (!isConnected || !bleCmdChar) { alert("Collega prima la moto"); return; }
+        const btnCheck = document.getElementById("btnFwCheck"), btnUpd = document.getElementById("btnFwUpdate");
+        btnCheck.disabled = true; btnUpd.disabled = true;
+        fwSetStatus("Controllo le versioni...");
+        try {
+            const resp = await fetch(FW_BASE + "manifest.json", { cache: "no-store" });
+            if (resp.status === 404) {
+                fwSetStatus("Nessuna versione ancora pubblicata su GitHub", true);
+                btnCheck.disabled = false;
+                return;
+            }
+            fwManifest = await resp.json();
+        } catch (e) {
+            fwSetStatus("GitHub non raggiungibile: controlla la connessione a internet", true);
+            btnCheck.disabled = false;
+            return;
+        }
+        if (!bleEventChar) {
+            fwSetStatus("La centralina non supporta l'aggiornamento via Bluetooth: serve un caricamento USB", true);
+            btnCheck.disabled = false;
+            return;
+        }
+        fwInstalled = {};
+        const collected = waitBleEvent(t => {
+            if (t === "DEV:END") return true;
+            if (t.startsWith("DEV:")) { const p = t.substring(4).split(","); fwInstalled[p[0]] = (p[1] || "").trim(); }
+            return undefined;
+        }, 4000).catch(() => true);
+        await sendBleCmd("DEVICES");
+        await collected;
+        fwSetStatus(fwSummary());
+        const n = fwToUpdate().length;
+        btnUpd.disabled = n === 0;
+        btnUpd.textContent = n ? "AGGIORNA (" + n + ")" : "AGGIORNA";
+        btnCheck.disabled = false;
+    }
+
+    async function fwUpdateAll() {
+        const list = fwToUpdate();
+        if (!list.length) return;
+        if (!confirm("Aggiornare " + list.map(id => FW_LABELS[id]).join(", ") + " alla versione " + fwManifest.version +
+                     "?\nMoto ferma, display accesi, pagina aperta fino alla fine.")) return;
+        const btnCheck = document.getElementById("btnFwCheck"), btnUpd = document.getElementById("btnFwUpdate");
+        const bar = document.getElementById("fwBar"), fill = document.getElementById("fwFill");
+        btnCheck.disabled = true; btnUpd.disabled = true;
+        let wakeLock = null;
+        try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
+        try {
+            for (const id of list) {
+                const info = fwManifest.boards[id], label = FW_LABELS[id];
+                fwSetStatus("Scarico il firmware per " + label.toLowerCase() + "...");
+                const img = new Uint8Array(await (await fetch(FW_BASE + info.file, { cache: "no-store" })).arrayBuffer());
+                if (img.length !== info.size) throw new Error("file scaricato non valido");
+
+                fwSetStatus("Preparo " + label.toLowerCase() + "...");
+                const ready = waitBleEvent(t => {
+                    if (t === "OTA:READY," + id) return "ok";
+                    if (t.startsWith("OTA:FAIL," + id)) return t.split(",").slice(2).join(",") || "errore";
+                    return undefined;
+                }, 15000);
+                await sendBleCmd("OTA_BEGIN:" + id + "," + img.length + "," + info.md5);
+                const r = await ready;
+                if (r !== "ok") throw new Error(label + ": " + r);
+
+                fwSetStatus("Invio a " + label.toLowerCase() + "...");
+                bar.style.display = "block";
+                const CHUNK = 480;  // Chrome splits it into the negotiated MTU if needed
+                for (let off = 0; off < img.length; off += CHUNK) {
+                    const part = img.subarray(off, Math.min(off + CHUNK, img.length));
+                    if (bleOtaChar.writeValueWithResponse) await bleOtaChar.writeValueWithResponse(part);
+                    else await bleOtaChar.writeValue(part);
+                    fill.style.width = Math.round((off + part.length) * 100 / img.length) + "%";
+                }
+
+                fwSetStatus("Verifica in corso...");
+                const done = waitBleEvent(t => {
+                    if (t === "OTA:DONE," + id) return "ok";
+                    if (t.startsWith("OTA:FAIL," + id)) return t.split(",").slice(2).join(",") || "errore";
+                    return undefined;
+                }, 20000);
+                await sendBleCmd("OTA_END:" + id);
+                const d = await done;
+                if (d !== "ok") throw new Error(label + ": " + d);
+                fwInstalled[id] = fwManifest.version;
+                bar.style.display = "none";
+                if (id !== "master") await new Promise(r => setTimeout(r, 1500));
+            }
+            fwSetStatus("Aggiornamento completato" + (list.includes("master") ? ": la centralina si riavvia, ricollegala" : ""));
+        } catch (e) {
+            try { await sendBleCmd("OTA_ABORT"); } catch (x) {}
+            fwSetStatus("Aggiornamento interrotto: " + e.message, true);
+        } finally {
+            bar.style.display = "none";
+            btnCheck.disabled = false;
+            if (wakeLock) wakeLock.release().catch(() => {});
+        }
+    }
+
+    // Send Remote Command over BLE to ESP32
+    async function sendBleCmd(cmdStr) {
+        if (!isConnected || !bleCmdChar) {
+            console.log("Mock cmd (not connected):", cmdStr);
+            alert(`Comando '${cmdStr}' pronto! (Connetti prima il BLE alla moto)`);
+            return;
+        }
+        try {
+            const encoder = new TextEncoder();
+            // Queued with the 1 Hz TRIP updates: Web Bluetooth rejects overlapping writes
+            const p = bleWriteChain.then(() => bleCmdChar.writeValue(encoder.encode(cmdStr)));
+            bleWriteChain = p.catch(() => {});
+            await p;
+            console.log("Sent BLE Cmd:", cmdStr);
+        } catch(e) {
+            console.error("Failed to send BLE command:", e);
+        }
+    }
+
+    function toggleAutoCal() {
+        autoCalRunning = !autoCalRunning;
+        const btn = document.getElementById("btnAutoCalToggle");
+        if (autoCalRunning) {
+            btn.innerText = "ANNULLA";
+            sendBleCmd("AUTOCAL_START");
+        } else {
+            btn.innerText = "AVVIA 3 MIN";
+            sendBleCmd("AUTOCAL_STOP");
+        }
+    }
+
+    function setScreen(screenIndex, btn) {
+        document.querySelectorAll('.screen-card-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        sendBleCmd(`SCREEN:${screenIndex}`);
+    }
+
+    function toggleAutoCycle() {
+        autoCycleState = !autoCycleState;
+        const btn = document.getElementById("btnAutoCycle");
+        btn.innerText = autoCycleState ? "ATTIVO" : "OFF";
+        btn.classList.toggle("on", autoCycleState);
+        sendBleCmd(`AUTOCYCLE:${autoCycleState ? 1 : 0}`);
+    }
+
+    function cycleGRotation() {
+        gRotationMode = (gRotationMode + 1) % 4;
+        const labels = ["0° (Normale)", "Ruotato -90° (Moto)", "180° (Invertito)", "Ruotato +90°"];
+        document.getElementById("lblGAlign").innerText = "Attuale: " + labels[gRotationMode];
+    }
+
+    // Data Parsing
+    const decoder = new TextDecoder();
+    let rxBuffer = "";
+
+    function handleBleData(event) {
+        const text = decoder.decode(event.target.value);
+        rxBuffer += text;
+
+        let lines = rxBuffer.split("\r\n");
+        rxBuffer = lines.pop();
+
+        for (let line of lines) {
+            if (line.startsWith("$RC2")) {
+                parseRC2(line);
+            }
+        }
+    }
+
+    function parseRC2(line) {
+        let starIdx = line.indexOf('*');
+        let data = (starIdx !== -1) ? line.substring(0, starIdx) : line;
+        let parts = data.split(',');
+
+        if (parts.length >= 7) {
+            let rawGLat = parseFloat(parts[3]) || 0;
+            let rawGLong = parseFloat(parts[4]) || 0;
+            let roll = parseFloat(parts[5]) || 0;
+            let pitch = parseFloat(parts[6]) || 0;
+            let rollRate = parseFloat(parts[7]) || 0;
+            let yawRate = parseFloat(parts[8]) || 0;
+            let alt = parseFloat(parts[9]) || 0;
+            let tps = (parts.length >= 11) ? (parseFloat(parts[10]) || 0) : 0;
+            let autocalPct = (parts.length >= 12) ? (parseInt(parts[11]) || 0) : 0;
+            let autocalSamples = (parts.length >= 13) ? (parseInt(parts[12]) || 0) : 0;
+
+            let heading = (parts.length >= 14) ? (parseFloat(parts[13]) || 0) : 0;
+            let cardinal = (parts.length >= 15) ? parts[14].trim() : '-';
+            let headingValid = (parts.length >= 16) ? (parseInt(parts[15]) === 1) : false;
+            let dPlus = (parts.length >= 17) ? (parseFloat(parts[16]) || 0) : 0;
+            let tempC = (parts.length >= 18) ? (parseFloat(parts[17]) || 0) : 0;
+
+            let gLat = rawGLat;
+            let gLong = rawGLong;
+
+            if (gRotationMode === 1) { // -90 deg
+                gLong = rawGLat;
+                gLat = -rawGLong;
+            } else if (gRotationMode === 2) { // 180 deg
+                gLong = -rawGLong;
+                gLat = -rawGLat;
+            } else if (gRotationMode === 3) { // +90 deg
+                gLong = -rawGLat;
+                gLat = rawGLong;
+            }
+
+            updateTelemetry(roll, pitch, gLat, gLong, rollRate, yawRate, alt, tps, autocalPct, autocalSamples, heading, cardinal, headingValid, dPlus, tempC);
+        }
+    }
+
+    function updateTelemetry(roll, pitch, gLat, gLong, rollRate, yawRate, alt, tps, autocalPct, autocalSamples, heading = 0, cardinal = '-', headingValid = false, dPlus = 0, tempC = 0) {
+        state.roll = roll;
+        state.pitch = pitch;
+        state.gLat = gLat;
+        state.gLong = gLong;
+        state.rollRate = rollRate;
+        state.yawRate = yawRate;
+        state.altitude = alt;
+        state.tps = tps;
+        state.autocalPct = autocalPct;
+        state.autocalSamples = autocalSamples;
+        state.heading = heading;
+        state.cardinal = cardinal;
+        state.headingValid = headingValid;
+        state.dPlus = dPlus;
+        state.tempC = tempC;
+
+        if (roll < 0 && Math.abs(roll) > state.maxRollL) state.maxRollL = Math.abs(roll);
+        if (roll > 0 && roll > state.maxRollR) state.maxRollR = roll;
+        if (gLong < 0 && Math.abs(gLong) > state.maxBrake) state.maxBrake = Math.abs(gLong);
+        if (gLong > 0 && gLong > state.maxAccel) state.maxAccel = gLong;
+
+        if (isRecording) {
+            recordedData.push({
+                time: (Date.now() - recStartTime) / 1000,
+                lat: currentGpsState.lat,
+                lon: currentGpsState.lon,
+                speedKmh: currentGpsState.speedKmh.toFixed(1),
+                tps: tps.toFixed(0),
+                roll: roll.toFixed(2),
+                pitch: pitch.toFixed(2),
+                gLat: gLat.toFixed(3),
+                gLong: gLong.toFixed(3),
+                rollRate: rollRate.toFixed(1),
+                yawRate: yawRate.toFixed(1),
+                alt: alt.toFixed(1),
+                heading: heading.toFixed(1)
+            });
+        }
+
+        analyzeCorner(roll, rollRate);
+        renderUI();
+    }
+
+    function analyzeCorner(roll, rollRate) {
+        let absRoll = Math.abs(roll);
+        let now = Date.now();
+
+        if (absRoll > 12.0) {
+            if (!inCorner) {
+                inCorner = true;
+                currentCorner = {
+                    isLeft: (roll < 0),
+                    peakRoll: absRoll,
+                    peakRate: Math.abs(rollRate),
+                    startTime: now
+                };
+            } else {
+                if (absRoll > currentCorner.peakRoll) currentCorner.peakRoll = absRoll;
+                if (Math.abs(rollRate) > currentCorner.peakRate) currentCorner.peakRate = Math.abs(rollRate);
+            }
+        } else if (inCorner && absRoll < 8.0) {
+            inCorner = false;
+            let dur = ((now - currentCorner.startTime) / 1000).toFixed(1);
+            if (currentCorner.peakRoll >= 18.0) {
+                cornerHistory.unshift({
+                    isLeft: currentCorner.isLeft,
+                    peakRoll: currentCorner.peakRoll.toFixed(1),
+                    peakRate: currentCorner.peakRate.toFixed(0),
+                    dur: dur
+                });
+                if (cornerHistory.length > 8) cornerHistory.pop();
+                renderCornerList();
+            }
+        }
+    }
+
+    function renderCornerList() {
+        const list = document.getElementById("cornerList");
+        document.getElementById("lblCornerCount").innerText = cornerHistory.length + " curve";
+        if (cornerHistory.length === 0) return;
+
+        list.innerHTML = cornerHistory.map(c => `
+            <div class="corner-pill">
+                <div class="corner-dir ${c.isLeft ? 'L' : 'R'}">${c.isLeft ? '◄ SX' : 'DX ►'}</div>
+                <div class="corner-max">${c.peakRoll}°</div>
+                <div class="corner-rate">${c.peakRate}°/s • ${c.dur}s</div>
+            </div>
+        `).join('');
+    }
+
+    function renderUI() {
+        let absRoll = Math.abs(state.roll);
+        document.getElementById("lblRollDeg").innerText = absRoll.toFixed(1) + "°";
+        document.getElementById("lblMapLean").innerText = absRoll.toFixed(1) + "°";
+        
+        let dirText = (absRoll < 2.0) ? "DIRITTO" : (state.roll < 0 ? "◄ SINISTRA" : "DESTRA ►");
+        let dirEl = document.getElementById("lblRollDir");
+        dirEl.innerText = dirText;
+        dirEl.style.color = (state.roll < -2) ? "var(--brand-cyan)" : (state.roll > 2 ? "var(--accent-orange)" : "var(--text-dim)");
+
+        document.getElementById("lblRollRate").innerText = state.rollRate.toFixed(0) + " °/s";
+        document.getElementById("lblMaxL").innerText = state.maxRollL.toFixed(1) + "°";
+        document.getElementById("lblMaxR").innerText = state.maxRollR.toFixed(1) + "°";
+
+        // TPS Update
+        document.getElementById("lblTps").innerText = state.tps.toFixed(0) + " %";
+        let tpsFill = document.getElementById("tpsFill");
+        tpsFill.style.width = Math.min(100, Math.max(0, state.tps)) + "%";
+        tpsFill.style.background = (state.tps > 80) ? "var(--accent-orange)" : "var(--accent-green)";
+
+        // AutoCal Live Update
+        if (state.autocalPct > 0 && state.autocalPct < 100) {
+            document.getElementById("lblAutoCalStatus").innerText = `In Corso: ${state.autocalPct}%`;
+            document.getElementById("autoCalFill").style.width = state.autocalPct + "%";
+            let remSec = Math.round(180 * (1 - state.autocalPct/100));
+            document.getElementById("lblAutoCalTimer").innerText = `Tempo: ${remSec}s`;
+            document.getElementById("lblAutoCalSamples").innerText = `${state.autocalSamples} campioni`;
+            document.getElementById("btnAutoCalToggle").innerText = "ANNULLA";
+            autoCalRunning = true;
+        } else if (state.autocalPct === 100) {
+            document.getElementById("lblAutoCalStatus").innerText = `✅ Completata!`;
+            document.getElementById("autoCalFill").style.width = "100%";
+            document.getElementById("lblAutoCalTimer").innerText = `Tempo: 0s`;
+            document.getElementById("lblAutoCalSamples").innerText = `${state.autocalSamples} campioni`;
+            document.getElementById("btnAutoCalToggle").innerText = "RIESEGUI";
+            autoCalRunning = false;
+        }
+
+        const alertEl = document.getElementById("alertFlash");
+        if (absRoll >= state.warningThreshold) {
+            alertEl.classList.add("active");
+            if (navigator.vibrate) navigator.vibrate(40);
+        } else {
+            alertEl.classList.remove("active");
+        }
+
+        let angleClamped = Math.max(-60, Math.min(60, state.roll));
+        let needle = document.getElementById("svgNeedle");
+        needle.setAttribute("transform", `rotate(${angleClamped} 150 150)`);
+
+        document.getElementById("lblGLong").innerText = (state.gLong > 0 ? "+" : "") + state.gLong.toFixed(2) + " G";
+        document.getElementById("lblPitch").innerText = (state.pitch > 0 ? "+" : "") + state.pitch.toFixed(1) + "°";
+        document.getElementById("lblAlt").innerText = state.altitude.toFixed(0) + " m";
+        document.getElementById("lblMaxBrake").innerText = "BRK: " + state.maxBrake.toFixed(2) + " G";
+        document.getElementById("lblMaxAccel").innerText = "ACC: " + state.maxAccel.toFixed(2) + " G";
+
+        let totalG = Math.sqrt(state.gLat * state.gLat + state.gLong * state.gLong);
+        document.getElementById("lblTotalG").innerText = totalG.toFixed(2) + " G";
+
+        let pitchFill = document.getElementById("pitchFill");
+        let pitchClamp = Math.max(-15, Math.min(15, state.pitch));
+        if (pitchClamp >= 0) {
+            pitchFill.style.left = "50%";
+            pitchFill.style.width = (pitchClamp / 15 * 50) + "%";
+            pitchFill.style.background = "var(--accent-orange)";
+        } else {
+            let w = (Math.abs(pitchClamp) / 15 * 50);
+            pitchFill.style.left = (50 - w) + "%";
+            pitchFill.style.width = w + "%";
+            pitchFill.style.background = "var(--brand-cyan)";
+        }
+
+        graphHistory.push({ roll: state.roll, gLong: state.gLong, tps: state.tps });
+        if (graphHistory.length > MAX_GRAPH_PTS) graphHistory.shift();
+
+        gTrail.push({ x: state.gLat, y: state.gLong });
+        if (gTrail.length > 25) gTrail.shift();
+
+        // 🧭 Compass & Navigation Render
+        let dial = document.getElementById("compassDial");
+        if (dial) {
+            dial.style.transform = `rotate(${-state.heading}deg)`;
+        }
+        let compDegEl = document.getElementById("lblCompassDeg");
+        if (compDegEl) compDegEl.innerText = Math.round(state.heading) + "°";
+        let compCardEl = document.getElementById("lblCompassCard");
+        if (compCardEl) compCardEl.innerText = state.cardinal;
+        
+        let compStatusEl = document.getElementById("lblCompassStatus");
+        let compGatingEl = document.getElementById("lblCompassGating");
+        if (compStatusEl) {
+            if (state.headingValid) {
+                compStatusEl.innerText = "VALIDA";
+                compStatusEl.className = "compass-status-pill";
+                if (compGatingEl) {
+                    compGatingEl.innerText = "Tilt Compensated";
+                    compGatingEl.style.color = "var(--accent-green)";
+                }
+            } else {
+                compStatusEl.innerText = "TILT GATE";
+                compStatusEl.className = "compass-status-pill gate";
+                if (compGatingEl) {
+                    compGatingEl.innerText = "Gating Curva Attivo";
+                    compGatingEl.style.color = "var(--accent-orange)";
+                }
+            }
+        }
+
+        // Heading Tape Update (36px per 10 deg -> 3.6px per deg)
+        let tape = document.getElementById("headingTapeTrack");
+        if (tape) {
+            let offsetPx = -(state.heading * 3.6);
+            tape.style.transform = `translateX(${offsetPx}px)`;
+        }
+        let gpsHeadEl = document.getElementById("lblGpsTrackHeading");
+        if (gpsHeadEl) {
+            gpsHeadEl.innerText = currentGpsState.heading > 0 ? `GPS Rotta: ${currentGpsState.heading.toFixed(0)}°` : "GPS Rotta: --°";
+        }
+
+        // Mountain Tour 4-Box Grid
+        let tourAltEl = document.getElementById("lblTourAlt");
+        if (tourAltEl) tourAltEl.innerText = Math.round(state.altitude) + " m";
+        let tourDPlusEl = document.getElementById("lblTourDPlus");
+        if (tourDPlusEl) tourDPlusEl.innerText = "+" + Math.round(state.dPlus) + " m";
+        let tourTempEl = document.getElementById("lblTourTemp");
+        if (tourTempEl) tourTempEl.innerText = state.tempC.toFixed(1) + " °C";
+        let tourPitchEl = document.getElementById("lblTourPitch");
+        if (tourPitchEl) tourPitchEl.innerText = (state.pitch >= 0 ? "+" : "") + state.pitch.toFixed(1) + "°";
+    }
+
+    function resetMaxStats() {
+        state.maxRollL = 0; state.maxRollR = 0; state.maxBrake = 0; state.maxAccel = 0;
+        sendBleCmd('RESET_RECORDS');
+        renderUI();
+    }
+
+    function toggleRecording() {
+        isRecording = !isRecording;
+        const btn = document.getElementById("btnRecord");
+        const lbl = document.getElementById("lblRecText");
+
+        if (isRecording) {
+            recordedData = [];
+            recStartTime = Date.now();
+            btn.classList.add("recording");
+            lbl.innerText = "Termina giro";
+            sendBleCmd('REC_START');
+        } else {
+            btn.classList.remove("recording");
+            lbl.innerText = "Avvia giro";
+            sendBleCmd('REC_STOP');
+            if (recordedData.length > 0) exportCsv();
+        }
+    }
+
+    // =========================================================================
+    // GPS & LEAFLET MAP TRACKING SYSTEM (100% FREE - NO API KEYS)
+    // =========================================================================
+    function initMap() {
+        if (map) return;
+        
+        // Default center: Italy
+        const defaultLat = 45.4642;
+        const defaultLon = 9.1900;
+
+        map = L.map('mapView', {
+            center: [defaultLat, defaultLon],
+            zoom: 15,
+            zoomControl: false,
+            attributionControl: false
+        });
+
+        // 1. OpenStreetMap Dark Filter (100% Free, No Key, Night Mode)
+        const osmDark = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            className: 'dark-tiles'
+        });
+
+        // 2. Esri Satellite (100% Free World Imagery, No Key)
+        const esriSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 19
+        });
+
+        // 3. OpenStreetMap Standard (100% Free Standard Day Map)
+        const osmStandard = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19
+        });
+
+        mapLayers = [osmDark, esriSat, osmStandard];
+        mapLayers[0].addTo(map);
+
+        // Custom Bike Marker
+        const bikeIcon = L.divIcon({
+            className: 'bike-map-marker',
+            html: `
+                <div style="width:20px;height:20px;background:radial-gradient(circle,#00d4ff 0%,#0066ff 100%);border:2px solid #ffffff;border-radius:50%;box-shadow:0 0 10px #00d4ff;display:flex;align-items:center;justify-content:center;">
+                    <div style="width:4px;height:4px;background:#ffffff;border-radius:50%;"></div>
+                </div>`,
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
+        });
+
+        bikeMarker = L.marker([defaultLat, defaultLon], { icon: bikeIcon }).addTo(map);
+
+        // Start GPS
+        initGpsTracking();
+    }
+
+    function toggleMapLayer() {
+        if (!map || mapLayers.length === 0) return;
+        map.removeLayer(mapLayers[currentLayerIndex]);
+        currentLayerIndex = (currentLayerIndex + 1) % mapLayers.length;
+        mapLayers[currentLayerIndex].addTo(map);
+
+        const mapEl = document.getElementById('mapView');
+        if (currentLayerIndex === 0) {
+            mapEl.classList.add('dark-map');
+        } else {
+            mapEl.classList.remove('dark-map');
+        }
+    }
+
+    function initGpsTracking(forceRestart = false) {
+        if (!navigator.geolocation) {
+            alert("Il tuo browser non supporta il GPS Geolocation.");
+            return;
+        }
+
+        if (gpsWatchId && forceRestart) {
+            navigator.geolocation.clearWatch(gpsWatchId);
+            gpsWatchId = null;
+        }
+
+        const badge = document.getElementById("gpsStatusBadge");
+        const badgeText = document.getElementById("gpsStatusText");
+
+        gpsWatchId = navigator.geolocation.watchPosition(
+            (pos) => {
+                const lat = pos.coords.latitude;
+                const lon = pos.coords.longitude;
+                const speedKmh = pos.coords.speed ? (pos.coords.speed * 3.6) : 0;
+                const alt = pos.coords.altitude || 0;
+                const acc = pos.coords.accuracy || 0;
+                const heading = pos.coords.heading || 0;
+
+                currentGpsState = { lat, lon, speedKmh, altitude: alt, heading, accuracy: acc };
+
+                badge.classList.add("active");
+                badgeText.innerText = "GPS Fix";
+                document.getElementById("lblGpsAcc").innerText = `Acc: ±${acc.toFixed(0)}m`;
+                document.getElementById("lblGpsSpeed").innerText = `${speedKmh.toFixed(0)} km/h`;
+
+                if (bikeMarker) {
+                    bikeMarker.setLatLng([lat, lon]);
+                }
+
+                if (lastGpsPos) {
+                    const dist = calculateDistance(lastGpsPos.lat, lastGpsPos.lon, lat, lon);
+                    if (dist > 1.5) { // Minimum 1.5m movement to add trackpoint
+                        totalGpsDistM += dist;
+                        document.getElementById("lblGpsDist").innerText = `${(totalGpsDistM / 1000).toFixed(2)} km`;
+                        
+                        renderGpsTrackSegment(lastGpsPos, { lat, lon }, state.roll, speedKmh, alt, state.gLong);
+
+                        lastGpsPos = { lat, lon };
+                    }
+                } else {
+                    lastGpsPos = { lat, lon };
+                    if (map) map.setView([lat, lon], 16);
+                }
+
+                if (followBike && map) {
+                    map.panTo([lat, lon]);
+                }
+            },
+            (err) => {
+                console.warn("GPS Warning:", err.message);
+                badge.classList.remove("active");
+                badgeText.innerText = "No GPS";
+            },
+            { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 }
+        );
+    }
+
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371000; // meters
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+    }
+
+    function toggleFollowBike() {
+        followBike = !followBike;
+        const btn = document.getElementById("btnFollowBike");
+        btn.classList.toggle("active", followBike);
+        if (followBike && lastGpsPos && map) {
+            map.setView([lastGpsPos.lat, lastGpsPos.lon], 16);
+        }
+    }
+
+    function clearGpsTrack() {
+        if (!confirm("Vuoi cancellare la traccia GPS della mappa?")) return;
+        for (let seg of gpsTrackSegments) {
+            if (map) map.removeLayer(seg);
+        }
+        gpsTrackSegments = [];
+        for (let m of gpsApexMarkers) {
+            if (map) map.removeLayer(m);
+        }
+        gpsApexMarkers = [];
+        totalGpsDistM = 0;
+        document.getElementById("lblGpsDist").innerText = "0.0 km";
+    }
+
+    // =========================================================================
+    // COLOR-CODED MAP LOGIC & PHONE STORAGE SESSIONS
+    // =========================================================================
+    let mapColorMode = 'lean';
+    let gpsApexMarkers = [];
+    let currentCornerPeak = 0;
+    let currentCornerApexPos = null;
+
+    function setMapColorMode(mode) {
+        mapColorMode = mode;
+        document.querySelectorAll('.map-mode-pill').forEach(p => p.classList.remove('active'));
+        if (mode === 'lean') document.getElementById('pillModeLean').classList.add('active');
+        if (mode === 'speed') document.getElementById('pillModeSpeed').classList.add('active');
+        if (mode === 'gforce') document.getElementById('pillModeG').classList.add('active');
+
+        const leg = document.getElementById('mapLegendContent');
+        if (mode === 'lean') {
+            leg.innerHTML = `
+                <div class="legend-item"><span class="legend-dot" style="background:#788ca0;"></span> &lt;15°</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#00d4ff;"></span> 15-25°</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#3cff00;"></span> 25-38°</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#ff9600;"></span> 38-46°</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#ff1744;"></span> &gt;46°</div>
+            `;
+        } else if (mode === 'speed') {
+            leg.innerHTML = `
+                <div class="legend-item"><span class="legend-dot" style="background:#0066ff;"></span> &lt;40 km/h</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#00d4ff;"></span> 40-70 km/h</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#00e676;"></span> 70-100 km/h</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#ffd600;"></span> 100-130 km/h</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#ff1744;"></span> &gt;130 km/h</div>
+            `;
+        } else if (mode === 'gforce') {
+            leg.innerHTML = `
+                <div class="legend-item"><span class="legend-dot" style="background:#ff1744;"></span> Staccata (&lt;-0.4G)</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#00d4ff;"></span> Neutro (~0G)</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#00e676;"></span> Trazione (&gt;0.3G)</div>
+            `;
+        }
+    }
+
+    function getSegmentColor(roll, speed, gLong) {
+        if (mapColorMode === 'speed') {
+            let spd = parseFloat(speed) || 0;
+            if (spd < 40) return "#0066ff";
+            if (spd < 70) return "#00d4ff";
+            if (spd < 100) return "#00e676";
+            if (spd < 130) return "#ffd600";
+            return "#ff1744";
+        }
+        if (mapColorMode === 'gforce') {
+            let gl = parseFloat(gLong) || 0;
+            if (gl < -0.40) return "#ff1744";
+            if (gl > +0.30) return "#00e676";
+            return "#00d4ff";
+        }
+        // Default: lean angle, same colour bands as the app and the cockpit displays
+        let abs = Math.abs(parseFloat(roll) || 0);
+        if (abs <= 15) return "#788ca0";
+        if (abs <= 25) return "#00d4ff";
+        if (abs <= 38) return "#3cff00";
+        if (abs <= 46) return "#ff9600";
+        return "#ff1744";
+    }
+
+    function renderGpsTrackSegment(p1, p2, roll, speed, alt, gLong) {
+        if (!map) return;
+        let color = getSegmentColor(roll, speed, gLong);
+        let absRoll = Math.abs(roll);
+        let dir = (roll < 0) ? "SX" : "DX";
+
+        let seg = L.polyline([[p1.lat, p1.lon], [p2.lat, p2.lon]], {
+            color: color,
+            weight: 5,
+            opacity: 0.95,
+            lineJoin: 'round',
+            lineCap: 'round'
+        }).addTo(map);
+
+        seg.bindPopup(`
+            <div style="font-family:sans-serif;font-size:12px;color:#0a0e17;line-height:1.4;">
+                <b style="font-size:13px;color:${color}">${absRoll >= 12 ? 'Curva ' + dir + ' ' + absRoll.toFixed(1) + '°' : 'Rettilineo'}</b><br>
+                <span>⚡ Velocità: <b>${Math.round(speed)} km/h</b></span><br>
+                <span>⛰️ Quota: <b>${Math.round(alt)} m</b></span>
+            </div>
+        `);
+        gpsTrackSegments.push(seg);
+
+        if (absRoll > 18.0) {
+            if (absRoll > currentCornerPeak) {
+                currentCornerPeak = absRoll;
+                currentCornerApexPos = { lat: p2.lat, lon: p2.lon, roll: roll };
+            }
+        } else if (currentCornerPeak >= 20.0 && currentCornerApexPos) {
+            addApexMarker(currentCornerApexPos.lat, currentCornerApexPos.lon, currentCornerApexPos.roll);
+            currentCornerPeak = 0;
+            currentCornerApexPos = null;
+        }
+    }
+
+    function addApexMarker(lat, lon, roll) {
+        let abs = Math.abs(roll);
+        let dir = (roll < 0) ? "SX" : "DX";
+        let cls = (abs >= 42.0) ? "limit" : ((roll < 0) ? "sx" : "dx");
+        let html = `<div class="apex-badge ${cls}">${dir} ${abs.toFixed(0)}°</div>`;
+        let icon = L.divIcon({
+            className: 'apex-badge-marker',
+            html: html,
+            iconSize: [42, 20],
+            iconAnchor: [21, 20]
+        });
+        let m = L.marker([lat, lon], { icon: icon }).addTo(map);
+        gpsApexMarkers.push(m);
+    }
+
+    const SESSIONS_STORAGE_KEY = "RIDELINK_SESSIONS_V1";
+    // Sessions saved under the first project name (FZ8): moved once to the new key
+    (function migrateSavedSessions() {
+        try {
+            const legacyKey = "FZ8_PHONE_SESSIONS_V1";
+            const old = localStorage.getItem(legacyKey);
+            if (old !== null && localStorage.getItem(SESSIONS_STORAGE_KEY) === null) {
+                localStorage.setItem(SESSIONS_STORAGE_KEY, old);
+            }
+            if (old !== null) localStorage.removeItem(legacyKey);
+        } catch (e) {}
+    })();
+
+    function getSavedSessions() {
+        try {
+            return JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY)) || [];
+        } catch(e) { return []; }
+    }
+
+    function setSavedSessions(sessions) {
+        try {
+            localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
+        } catch(e) { console.error("Storage error:", e); }
+    }
+
+    function saveCurrentSessionToPhone(customSession = null) {
+        let session = customSession;
+        if (!session) {
+            if (recordedData.length === 0) {
+                alert("Nessun dato registrato. Avvia prima 'REC Sessione' per guidare e registrare!");
+                return;
+            }
+            let maxSpd = 0;
+            for (let r of recordedData) {
+                let s = parseFloat(r.speedKmh) || 0;
+                if (s > maxSpd) maxSpd = s;
+            }
+            session = {
+                id: "sess_" + Date.now(),
+                dateStr: new Date().toLocaleDateString('it-IT', { day:'2-digit', month:'2-digit', year:'numeric' }) + " " + new Date().toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit' }),
+                durationSec: Math.round((Date.now() - recStartTime) / 1000),
+                distanceKm: (totalGpsDistM / 1000).toFixed(2),
+                maxRollL: state.maxRollL.toFixed(1),
+                maxRollR: state.maxRollR.toFixed(1),
+                maxSpeedKmh: maxSpd.toFixed(0),
+                samplesCount: recordedData.length,
+                points: [...recordedData]
+            };
+        }
+
+        let list = getSavedSessions();
+        list.unshift(session);
+        setSavedSessions(list);
+        renderSavedSessionsList();
+        alert(`Sessione del ${session.dateStr} salvata con successo sul telefono! (${session.points.length} punti)`);
+    }
+
+    function renderSavedSessionsList() {
+        const container = document.getElementById("savedSessionsList");
+        const countEl = document.getElementById("lblSessionCount");
+        if (!container) return;
+
+        let sessions = getSavedSessions();
+        countEl.innerText = `${sessions.length} session${sessions.length === 1 ? 'e' : 'i'}`;
+
+        if (sessions.length === 0) {
+            container.innerHTML = `
+                <div style="font-size:11px;color:var(--text-dim);text-align:center;padding:16px 8px;">
+                    Nessuna sessione salvata sul telefono.<br>Registra con <b>REC Sessione</b> o carica il <b>Passo Demo</b>!
+                </div>
+            `;
+            return;
+        }
+
+        let html = '';
+        sessions.forEach((s) => {
+            html += `
+                <div class="session-card-item">
+                    <div class="session-header">
+                        <span class="session-date">📅 ${s.dateStr}</span>
+                        <span class="session-badge">📍 ${s.distanceKm} km</span>
+                    </div>
+                    <div class="session-stats-grid">
+                        <div class="s-stat"><span class="s-stat-lbl">Tempo</span><span class="s-stat-val" style="color:var(--text-main);">${Math.floor(s.durationSec/60)}m ${s.durationSec%60}s</span></div>
+                        <div class="s-stat"><span class="s-stat-lbl">Max SX</span><span class="s-stat-val" style="color:var(--brand-cyan);">-${s.maxRollL}°</span></div>
+                        <div class="s-stat"><span class="s-stat-lbl">Max DX</span><span class="s-stat-val" style="color:var(--accent-orange);">+${s.maxRollR}°</span></div>
+                        <div class="s-stat"><span class="s-stat-lbl">Max Vel</span><span class="s-stat-val" style="color:var(--accent-green);">${s.maxSpeedKmh} km/h</span></div>
+                    </div>
+                    <div class="session-actions">
+                        <button class="session-btn primary" onclick="loadSessionOnMap('${s.id}')">
+                            🗺️ Mappa
+                        </button>
+                        <button class="session-btn" onclick="exportSavedGpx('${s.id}')">
+                            📥 GPX
+                        </button>
+                        <button class="session-btn" onclick="exportSavedCsv('${s.id}')">
+                            📊 CSV
+                        </button>
+                        <button class="session-btn delete" onclick="deleteSavedSession('${s.id}')" title="Elimina">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    function loadSessionOnMap(sessionId) {
+        let sessions = getSavedSessions();
+        let s = sessions.find(item => item.id === sessionId);
+        if (!s || !s.points || s.points.length === 0) {
+            alert("Nessun punto GPS trovato in questa sessione.");
+            return;
+        }
+
+        switchTab('tabRides', document.querySelectorAll('.tab-btn')[2]);
+
+        for (let seg of gpsTrackSegments) { if (map) map.removeLayer(seg); }
+        gpsTrackSegments = [];
+        for (let m of gpsApexMarkers) { if (map) map.removeLayer(m); }
+        gpsApexMarkers = [];
+
+        let bounds = [];
+        let curPeak = 0;
+        let curApex = null;
+
+        for (let i = 0; i < s.points.length - 1; i++) {
+            let p1 = s.points[i];
+            let p2 = s.points[i + 1];
+            if (!p1.lat || !p1.lon || !p2.lat || !p2.lon) continue;
+
+            let roll = parseFloat(p2.roll) || 0;
+            let absRoll = Math.abs(roll);
+            let speed = parseFloat(p2.speedKmh) || 0;
+            let alt = parseFloat(p2.alt) || 0;
+            let gLong = parseFloat(p2.gLong) || 0;
+
+            let color = getSegmentColor(roll, speed, gLong);
+
+            let seg = L.polyline([[p1.lat, p1.lon], [p2.lat, p2.lon]], {
+                color: color,
+                weight: 5,
+                opacity: 0.95,
+                lineJoin: 'round',
+                lineCap: 'round'
+            }).addTo(map);
+
+            seg.bindPopup(`
+                <div style="font-family:sans-serif;font-size:12px;color:#0a0e17;line-height:1.4;">
+                    <b style="font-size:13px;color:${color}">${absRoll >= 12 ? 'Curva ' + (roll < 0 ? 'SX' : 'DX') + ' ' + absRoll.toFixed(1) + '°' : 'Rettilineo'}</b><br>
+                    <span>⚡ Velocità: <b>${Math.round(speed)} km/h</b></span><br>
+                    <span>⛰️ Quota: <b>${Math.round(alt)} m</b></span>
+                </div>
+            `);
+            gpsTrackSegments.push(seg);
+            bounds.push([p1.lat, p1.lon]);
+
+            if (absRoll > 18.0) {
+                if (absRoll > curPeak) {
+                    curPeak = absRoll;
+                    curApex = { lat: p2.lat, lon: p2.lon, roll: roll };
+                }
+            } else if (curPeak >= 20.0 && curApex) {
+                addApexMarker(curApex.lat, curApex.lon, curApex.roll);
+                curPeak = 0;
+                curApex = null;
+            }
+        }
+
+        if (bounds.length > 0 && map) {
+            map.fitBounds(bounds, { padding: [25, 25] });
+        }
+
+        document.getElementById("lblGpsDist").innerText = `${s.distanceKm} km`;
+        document.getElementById("lblGpsSpeed").innerText = `${s.maxSpeedKmh} km/h (Max)`;
+        document.getElementById("lblMapLean").innerText = `-${s.maxRollL}° / +${s.maxRollR}°`;
+    }
+
+    function deleteSavedSession(sessionId) {
+        if (!confirm("Vuoi eliminare questa sessione salvata dal telefono?")) return;
+        let sessions = getSavedSessions().filter(s => s.id !== sessionId);
+        setSavedSessions(sessions);
+        renderSavedSessionsList();
+    }
+
+    function exportSavedGpx(sessionId) {
+        let s = getSavedSessions().find(item => item.id === sessionId);
+        if (!s) return;
+        let gpx = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+        gpx += `<gpx version="1.1" creator="OmniRide" xmlns="http://www.topografix.com/GPX/1/1">\n`;
+        gpx += `  <metadata><name>OmniRide ${s.dateStr}</name><time>${new Date().toISOString()}</time></metadata>\n`;
+        gpx += `  <trk>\n    <name>OmniRide ${s.dateStr}</name>\n    <trkseg>\n`;
+        for (let r of s.points) {
+            if (r.lat && r.lon) {
+                gpx += `      <trkpt lat="${r.lat}" lon="${r.lon}">\n`;
+                gpx += `        <ele>${r.alt}</ele>\n`;
+                gpx += `        <extensions>\n`;
+                gpx += `          <speed>${(parseFloat(r.speedKmh)/3.6).toFixed(2)}</speed>\n`;
+                gpx += `          <roll>${r.roll}</roll>\n`;
+                gpx += `        </extensions>\n`;
+                gpx += `      </trkpt>\n`;
+            }
+        }
+        gpx += `    </trkseg>\n  </trk>\n</gpx>\n`;
+        downloadFile(gpx, `OmniRide_${s.dateStr.replace(/[\/ :]/g, '_')}.gpx`, "application/gpx+xml;charset=utf-8;");
+    }
+
+    function exportSavedCsv(sessionId) {
+        let s = getSavedSessions().find(item => item.id === sessionId);
+        if (!s) return;
+        let csv = "Time_s,Latitude,Longitude,Speed_kmh,Roll_deg,Pitch_deg,G_Lat,G_Long,Altitude_m\n";
+        for (let r of s.points) {
+            csv += `${r.time},${r.lat},${r.lon},${r.speedKmh},${r.roll},${r.pitch},${r.gLat},${r.gLong},${r.alt}\n`;
+        }
+        downloadFile(csv, `OmniRide_${s.dateStr.replace(/[\/ :]/g, '_')}.csv`, "text/csv;charset=utf-8;");
+    }
+
+    function loadDemoRoute() {
+        let centerLat = 44.0924;
+        let centerLon = 11.2785; // Passo della Futa
+        let pts = [];
+        let curLat = centerLat;
+        let curLon = centerLon;
+        let heading = 45;
+        let alt = 780;
+        let t = 0;
+
+        const curvePlan = [
+            { turns: 6, roll: 0, speed: 85 },
+            { turns: 8, roll: -36.5, speed: 52 },
+            { turns: 5, roll: 0, speed: 78 },
+            { turns: 9, roll: +41.2, speed: 48 },
+            { turns: 4, roll: 0, speed: 90 },
+            { turns: 10, roll: -44.8, speed: 44 },
+            { turns: 6, roll: +28.0, speed: 65 },
+            { turns: 5, roll: -30.0, speed: 62 },
+            { turns: 8, roll: +43.0, speed: 46 },
+            { turns: 10, roll: 0, speed: 82 }
+        ];
+
+        for (let sec of curvePlan) {
+            for (let i = 0; i < sec.turns; i++) {
+                heading += (sec.roll * 0.12);
+                let rad = heading * Math.PI / 180;
+                let stepM = 22;
+                curLat += (stepM * Math.cos(rad)) / 111111;
+                curLon += (stepM * Math.sin(rad)) / (111111 * Math.cos(curLat * Math.PI / 180));
+                alt += 3.5;
+                t += 1.2;
+
+                pts.push({
+                    time: t.toFixed(1),
+                    lat: curLat,
+                    lon: curLon,
+                    speedKmh: (sec.speed + (Math.random()*4 - 2)).toFixed(1),
+                    roll: (sec.roll + (Math.random()*2 - 1)).toFixed(1),
+                    pitch: (sec.roll !== 0 ? -1.8 : 2.4).toFixed(1),
+                    gLat: (Math.sin(sec.roll * Math.PI / 180)).toFixed(2),
+                    gLong: (sec.roll !== 0 ? -0.35 : 0.25).toFixed(2),
+                    alt: alt.toFixed(0)
+                });
+            }
+        }
+
+        let demoSession = {
+            id: "demo_" + Date.now(),
+            dateStr: "Passo della Futa (Demo Pieghe)",
+            durationSec: Math.round(t),
+            distanceKm: "5.40",
+            maxRollL: "44.8",
+            maxRollR: "43.0",
+            maxSpeedKmh: "94",
+            samplesCount: pts.length,
+            points: pts
+        };
+
+        saveCurrentSessionToPhone(demoSession);
+        loadSessionOnMap(demoSession.id);
+    }
+
+    // =========================================================================
+    // EXPORT FUNCTIONS (CSV & GPX)
+    // =========================================================================
+    function exportCsv() {
+        if (recordedData.length === 0) {
+            alert("Nessun dato registrato. Premi 'REC Sessione' prima di guidare!");
+            return;
+        }
+
+        let csv = "Time_s,Latitude,Longitude,Speed_kmh,TPS_pct,Roll_deg,Pitch_deg,G_Lat,G_Long,RollRate_dps,YawRate_dps,Altitude_m\n";
+        for (let r of recordedData) {
+            csv += `${r.time},${r.lat},${r.lon},${r.speedKmh},${r.tps || 0},${r.roll},${r.pitch},${r.gLat},${r.gLong},${r.rollRate},${r.yawRate},${r.alt}\n`;
+        }
+
+        downloadFile(csv, `OmniRide_${getTimestampStr()}.csv`, "text/csv;charset=utf-8;");
+    }
+
+    function exportGpx() {
+        if (recordedData.length === 0) {
+            alert("Nessun dato registrato. Premi 'REC Sessione' per salvare il tracciato!");
+            return;
+        }
+
+        let gpx = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+        gpx += `<gpx version="1.1" creator="OmniRide" xmlns="http://www.topografix.com/GPX/1/1">\n`;
+        gpx += `  <metadata><name>OmniRide Session</name><time>${new Date().toISOString()}</time></metadata>\n`;
+        gpx += `  <trk>\n    <name>OmniRide</name>\n    <trkseg>\n`;
+
+        for (let r of recordedData) {
+            if (r.lat && r.lon && r.lat !== 0 && r.lon !== 0) {
+                gpx += `      <trkpt lat="${r.lat}" lon="${r.lon}">\n`;
+                gpx += `        <ele>${r.alt}</ele>\n`;
+                gpx += `        <extensions>\n`;
+                gpx += `          <speed>${(parseFloat(r.speedKmh)/3.6).toFixed(2)}</speed>\n`;
+                gpx += `          <tps>${r.tps || 0}</tps>\n`;
+                gpx += `          <roll>${r.roll}</roll>\n`;
+                gpx += `          <g_long>${r.gLong}</g_long>\n`;
+                gpx += `        </extensions>\n`;
+                gpx += `      </trkpt>\n`;
+            }
+        }
+
+        gpx += `    </trkseg>\n  </trk>\n</gpx>\n`;
+        downloadFile(gpx, `OmniRide_Track_${getTimestampStr()}.gpx`, "application/gpx+xml;charset=utf-8;");
+    }
+
+    function downloadFile(content, fileName, mimeType) {
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    function getTimestampStr() {
+        return new Date().toISOString().slice(0,19).replace(/:/g,'-');
+    }
+
+    // Canvas G-Meter
+    const canvasG = document.getElementById("canvasGMeter");
+    const ctxG = canvasG.getContext("2d");
+
+    function drawGMeter() {
+        const w = canvasG.width; const h = canvasG.height; const cx = w / 2; const cy = h / 2; const r = w / 2 - 10;
+        ctxG.clearRect(0, 0, w, h);
+
+        ctxG.strokeStyle = "rgba(255,255,255,0.12)"; ctxG.lineWidth = 1;
+        ctxG.beginPath(); ctxG.arc(cx, cy, r * 0.33, 0, Math.PI * 2); ctxG.stroke();
+        ctxG.beginPath(); ctxG.arc(cx, cy, r * 0.66, 0, Math.PI * 2); ctxG.stroke();
+        ctxG.beginPath(); ctxG.arc(cx, cy, r, 0, Math.PI * 2); ctxG.stroke();
+
+        ctxG.beginPath();
+        ctxG.moveTo(cx, 8); ctxG.lineTo(cx, h - 8);
+        ctxG.moveTo(8, cy); ctxG.lineTo(w - 8, cy);
+        ctxG.stroke();
+
+        for (let i = 0; i < gTrail.length; i++) {
+            let pt = gTrail[i];
+            let alpha = (i / gTrail.length) * 0.6;
+            let px = cx + (pt.x / 1.5) * r;
+            let py = cy - (pt.y / 1.5) * r;
+            ctxG.fillStyle = `rgba(0, 212, 255, ${alpha})`;
+            ctxG.beginPath(); ctxG.arc(px, py, 3, 0, Math.PI * 2); ctxG.fill();
+        }
+
+        let liveX = cx + (state.gLat / 1.5) * r;
+        let liveY = cy - (state.gLong / 1.5) * r;
+        liveX = Math.max(cx - r, Math.min(cx + r, liveX));
+        liveY = Math.max(cy - r, Math.min(cy + r, liveY));
+
+        ctxG.fillStyle = "#ff1744"; ctxG.beginPath(); ctxG.arc(liveX, liveY, 6, 0, Math.PI * 2); ctxG.fill();
+        requestAnimationFrame(drawGMeter);
+    }
+    requestAnimationFrame(drawGMeter);
+
+    // Canvas Live Graph
+    const canvasGraph = document.getElementById("canvasGraph");
+    const ctxGr = canvasGraph.getContext("2d");
+
+    function drawGraph() {
+        const w = canvasGraph.width; const h = canvasGraph.height; const cy = h / 2;
+        ctxGr.clearRect(0, 0, w, h);
+
+        ctxGr.strokeStyle = "rgba(255,255,255,0.08)"; ctxGr.lineWidth = 1;
+        ctxGr.beginPath(); ctxGr.moveTo(0, cy); ctxGr.lineTo(w, cy); ctxGr.stroke();
+
+        if (graphHistory.length < 2) { requestAnimationFrame(drawGraph); return; }
+
+        const step = w / (MAX_GRAPH_PTS - 1);
+        
+        // 1. Roll Curve (Cyan)
+        ctxGr.strokeStyle = "#00d4ff"; ctxGr.lineWidth = 2.0; ctxGr.beginPath();
+        for (let i = 0; i < graphHistory.length; i++) {
+            let x = i * step;
+            let y = cy + (graphHistory[i].roll / 60) * (cy - 8);
+            if (i === 0) ctxGr.moveTo(x, y);
+            else ctxGr.lineTo(x, y);
+        }
+        ctxGr.stroke();
+
+        // 2. G-Long Curve (Orange)
+        ctxGr.strokeStyle = "#ff9100"; ctxGr.lineWidth = 1.6; ctxGr.beginPath();
+        for (let i = 0; i < graphHistory.length; i++) {
+            let x = i * step;
+            let y = cy - (graphHistory[i].gLong / 1.5) * (cy - 8);
+            if (i === 0) ctxGr.moveTo(x, y);
+            else ctxGr.lineTo(x, y);
+        }
+        ctxGr.stroke();
+
+        // 3. TPS Gas Curve (Green)
+        ctxGr.strokeStyle = "#00e676"; ctxGr.lineWidth = 1.2; ctxGr.beginPath();
+        for (let i = 0; i < graphHistory.length; i++) {
+            let x = i * step;
+            let y = (h - 6) - (graphHistory[i].tps / 100) * (h - 12);
+            if (i === 0) ctxGr.moveTo(x, y);
+            else ctxGr.lineTo(x, y);
+        }
+        ctxGr.stroke();
+
+        requestAnimationFrame(drawGraph);
+    }
+    requestAnimationFrame(drawGraph);
+
+    function initHeadingTape() {
+        const tape = document.getElementById("headingTapeTrack");
+        if (!tape) return;
+        let html = '';
+        const cardinals = { 0: 'N', 45: 'NE', 90: 'E', 135: 'SE', 180: 'S', 225: 'SW', 270: 'W', 315: 'NW', 360: 'N', 405: 'NE', 450: 'E', 495: 'SE', 540: 'S', 585: 'SW', 630: 'W', 675: 'NW', 720: 'N' };
+        for (let deg = 0; deg <= 720; deg += 10) {
+            let card = cardinals[deg] || '';
+            let isN = (deg % 360 === 0);
+            let cls = isN ? 'tape-mark north' : (card ? 'tape-mark cardinal' : 'tape-mark');
+            let label = card || (deg % 360);
+            html += `<div class="${cls}"><div class="tape-tick"></div><span>${label}</span></div>`;
+        }
+        tape.innerHTML = html;
+    }
+    initHeadingTape();
+
+    let magCalInterval = null;
+    let magCalSec = 0;
+    function toggleMagCal() {
+        const btn = document.getElementById("btnMagCal");
+        const lbl = document.getElementById("lblMagCalTimer");
+        if (magCalInterval) {
+            clearInterval(magCalInterval);
+            magCalInterval = null;
+            sendBleCmd("CAL_MAG_STOP");
+            btn.innerText = "AVVIA CALIBRAZIONE BUSSOLA (15s)";
+            btn.classList.remove("on");
+            lbl.innerText = "Calibrazione Salvata!";
+            lbl.style.color = "var(--accent-green)";
+            return;
+        }
+        sendBleCmd("CAL_MAG_START");
+        magCalSec = 15;
+        btn.innerText = `SALVA SUBITO (${magCalSec}s)`;
+        btn.classList.add("on");
+        lbl.innerText = `Ruota la schedina a 360°... ${magCalSec}s`;
+        lbl.style.color = "var(--accent-orange)";
+        
+        magCalInterval = setInterval(() => {
+            magCalSec--;
+            if (magCalSec <= 0) {
+                clearInterval(magCalInterval);
+                magCalInterval = null;
+                btn.innerText = "AVVIA CALIBRAZIONE BUSSOLA (15s)";
+                btn.classList.remove("on");
+                lbl.innerText = "Calibrazione Completata!";
+                lbl.style.color = "var(--accent-green)";
+            } else {
+                btn.innerText = `SALVA SUBITO (${magCalSec}s)`;
+                lbl.innerText = `Ruota la schedina a 360°... ${magCalSec}s`;
+            }
+        }, 1000);
+    }
+</script>
+</body>
+</html>
