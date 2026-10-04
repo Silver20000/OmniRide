@@ -4,6 +4,12 @@ Tutte le modifiche e le evoluzioni del firmware, delle app e dell'hardware di Om
 
 ---
 
+## [4.1.2] - 2026-10-04
+### Display
+- Pagina 0-100: l'avviso "solo in pista o area chiusa" e gli altri messaggi non escono più dai bordi. Il testo si adatta da solo: carattere grande, medio o su due righe.
+
+---
+
 ## [4.1.1] - 2026-10-04
 ### Centralina
 - **0-100 km/h corretto**: il cronometro non partiva o si annullava da solo. Usava l'accelerazione "compensata" dal filtro dell'assetto, che in una partenza dritta scambia l'accelerazione per un beccheggio e la azzera in un decimo di secondo. Ora misura l'accelerazione grezza meno quella da fermo (pendenza e montaggio), corregge l'alzata della moto con il giroscopio e usa il tempo reale tra i campioni.
