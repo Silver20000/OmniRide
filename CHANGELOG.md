@@ -4,6 +4,14 @@ Tutte le modifiche e le evoluzioni del firmware, delle app e dell'hardware di Om
 
 ---
 
+## [4.1.1] - 2026-10-04
+### Centralina
+- **0-100 km/h corretto**: il cronometro non partiva o si annullava da solo. Usava l'accelerazione "compensata" dal filtro dell'assetto, che in una partenza dritta scambia l'accelerazione per un beccheggio e la azzera in un decimo di secondo. Ora misura l'accelerazione grezza meno quella da fermo (pendenza e montaggio), corregge l'alzata della moto con il giroscopio e usa il tempo reale tra i campioni.
+- Riconoscimento "fermo" e partenza robusti alle vibrazioni del motore; il cronometro parte dal primo istante della spinta; se la moto viene solo dondolata torna in attesa invece di annullare.
+- Provato su partenze simulate (salita, discesa, vibrazioni, alzata, cambi marcia, senza telefono): errore entro circa 0,1 s.
+
+---
+
 ## [4.1.0] - 2026-10-03
 ### App
 - **Aggiornamenti automatici dell'app**: all'apertura OmniRide controlla se c'è una versione nuova, la scarica e la installa con un tocco (poi propone di aggiornare centralina e display).
