@@ -4,6 +4,17 @@ Tutte le modifiche e le evoluzioni del firmware, delle app e dell'hardware di Om
 
 ---
 
+## [4.5.0] - in preparazione
+### Centralina
+- **A batteria, senza fili alla moto**: con una batteria al litio ricaricata via USB-C la centralina funziona da sola. A batteria va in risparmio energetico (processore a 80 MHz, Bluetooth e radio dei display a potenza ridotta, dati ai display a 25 Hz, radio in ascolto a intervalli), con la USB-C collegata va a piena potenza. Livello della batteria nell'app e sui display, avviso al 20% e al 10%.
+- Tolto il supporto ai moduli 4G e GPS.
+- Sensore del gas (TPS) solo sui prototipi: spento di serie, si attiva da *Altro > Modalità sviluppatore* (con password). Senza TPS la barra del gas non compare sui display. Spostato su GPIO 2: GPIO 7 sull'ESP32-C3 non legge tensioni.
+
+### Display
+- Icona della batteria della centralina nella barra in alto e avviso di batteria scarica.
+
+---
+
 ## [4.4.0] - 2026-10-11
 ### Gomme
 - **Sensori pressione gomme (TPMS Bluetooth)**: tappi sulle valvole letti dalla centralina, senza fili. Il display alterna la pressione alla riga della manutenzione e avvisa con un popup se una gomma scende sotto la pressione impostata (0,3 bar) o si sgonfia in fretta (foratura). Abbinamento e pressioni da mantenere in *Altro > Moto e display*; nella pagina Moto compare la scheda delle gomme solo se ci sono sensori abbinati.

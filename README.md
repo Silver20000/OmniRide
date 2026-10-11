@@ -44,7 +44,7 @@
 
 | Versione | Cosa arriva |
 |---|---|
-| **4.2** | 🍏 **iPhone senza app**: chiamate, WhatsApp, SMS e indicazioni di Google Maps sui display, direttamente dalle notifiche · 📡 **Modulo 4G e GPS facoltativi**: la moto manda da sola l'SMS di soccorso con la sua posizione |
+| **4.2** | 🍏 **iPhone senza app**: chiamate, WhatsApp, SMS e indicazioni di Google Maps sui display, direttamente dalle notifiche |
 | **4.1** | 📲 **App più pro**: aggiornamenti automatici, configurazione guidata, cruscotto grafico, scheda del giro da condividere, inglese, km/miglia, diagnostica · 🌐 web app uguale all'app |
 | **4.0** | 🏷️ **Nuovo nome: OmniRide** (prima RideLink): stessa centralina, stessi display, impostazioni conservate |
 | **3.6** | 🔋 **Standby più leggero, solo con un aggiornamento**: controlli sempre più radi a moto ferma e GPS del telefono spento a moto lontana (facoltativo col GY-87: risveglio dal sensore con un filo in più) |
@@ -105,7 +105,7 @@ Il conto alla rovescia (30 s: display rossi, bip, notifica sul telefono) parte s
 2. inclinazione oltre **65°**;
 3. moto **ferma** in quella posizione per **3,5 s**.
 
-Si annulla con un tocco sul display, con il pulsante della centralina o dalla notifica. Se scade, la moto (con il modulo 4G) o l'app manda un SMS con il link alla posizione GPS fino a **5 contatti**; se annulli dopo, parte un SMS di "falso allarme". L'app ha un suo conto alla rovescia: l'SMS parte anche se il Bluetooth si interrompe nella caduta.
+Si annulla con un tocco sul display, con il pulsante della centralina o dalla notifica. Se scade, l'app manda un SMS con il link alla posizione GPS fino a **5 contatti**; se annulli dopo, parte un SMS di "falso allarme". L'app ha un suo conto alla rovescia: l'SMS parte anche se il Bluetooth si interrompe nella caduta.
 
 > OmniRide è un aiuto, non un dispositivo di sicurezza certificato: l'SOS dipende da telefono, batteria e copertura di rete.
 
@@ -114,12 +114,13 @@ Non serve nessuna app: la centralina legge le notifiche dell'iPhone (servizio Ap
 1. iPhone: *Impostazioni → Bluetooth*, tocca **OmniRide** e conferma l'abbinamento.
 2. Alla domanda *Consentire a OmniRide di ricevere le notifiche?* rispondi **Consenti**.
 
-Da quel momento l'iPhone si ricollega da solo e sui display arrivano chiamate (con il nome), chiamate perse, WhatsApp, SMS/iMessage, Telegram e le indicazioni di Google Maps (svolta, distanza, via). Per impostazioni, calibrazioni e aggiornamenti c'è la web app nel browser **Bluefy**. L'SMS di soccorso da iPhone non si può automatizzare: serve il modulo 4G sulla centralina (sotto).
+Da quel momento l'iPhone si ricollega da solo e sui display arrivano chiamate (con il nome), chiamate perse, WhatsApp, SMS/iMessage, Telegram e le indicazioni di Google Maps (svolta, distanza, via). Per impostazioni, calibrazioni e aggiornamenti c'è la web app nel browser **Bluefy**. L'SMS di soccorso automatico richiede l'app Android (iOS non permette di inviare SMS da sola).
 
-### 📡 Modulo 4G e GPS (facoltativi)
-Due moduli da collegare alla centralina con due fili (GPIO 6 e 10), riconosciuti da soli all'accensione:
-- **Modulo 4G A7670E** (meglio la versione con GPS, es. A7670E-FASL) + una nano SIM: in caso di caduta **è la moto a mandare l'SMS** di soccorso, con la posizione del suo GPS. Funziona con iPhone, con il telefono spento o rotto nella caduta. I contatti si salvano nella centralina dall'app o dalla web app. Con l'app Android collegata non partono SMS doppi: il telefono resta di riserva e interviene solo se la moto non riesce a inviare.
-- **Modulo GPS** (ATGM336H, NEO-6M/M8N): la velocità sui display e il 0-100 anche senza telefono.
+### 🔋 A batteria, senza fili alla moto
+La centralina può funzionare con una sua batteria al litio, ricaricata con il cavo **USB-C** come un telefono: nessun collegamento all'impianto della moto.
+- **A batteria** entra da sola in **risparmio energetico**: processore più lento, radio a potenza ridotta, dati ai display 25 volte al secondo invece di 50. Pensata per almeno una giornata di guida (circa 8 ore con 800 mAh; da verificare sulla tua unità).
+- **Con la USB-C collegata** va alla massima velocità.
+- Livello della batteria sull'app e sui display, avviso al 20% e al 10%.
 
 ### 🅿️ Dove ho parcheggiato
 Quando ti allontani dalla moto (o la centralina va in standby) l'app salva la posizione. *Portami alla moto* apre le indicazioni a piedi.
@@ -146,8 +147,7 @@ Dopo 5 minuti da ferma la centralina spegne i sensori e va in deep sleep. Contro
 | Aggiornamento firmware via Bluetooth | ✅ | ✅ |
 | Navigazione Google Maps sul cruscotto | ✅ | — (il browser non legge le notifiche) |
 | Chiamate / WhatsApp sul cruscotto | ✅ | — |
-| SOS via SMS | ✅ | con il modulo 4G sulla centralina |
-| Contatti SOS salvati nella centralina (modulo 4G) | ✅ | ✅ |
+| SOS via SMS | ✅ | — (il browser non può mandare SMS) |
 | Funziona in background | ✅ | — |
 
 ---
