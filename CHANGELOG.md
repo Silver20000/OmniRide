@@ -4,7 +4,7 @@ Tutte le modifiche e le evoluzioni del firmware, delle app e dell'hardware di Om
 
 ---
 
-## [4.5.0] - in preparazione
+## [4.5.0] - 2026-10-11
 ### Centralina
 - **A batteria, senza fili alla moto**: con una batteria al litio ricaricata via USB-C la centralina funziona da sola. A batteria va in risparmio energetico (processore a 80 MHz, Bluetooth e radio dei display a potenza ridotta, dati ai display a 25 Hz, radio in ascolto a intervalli), con la USB-C collegata va a piena potenza. Livello della batteria nell'app e sui display, avviso al 20% e al 10%.
 - Tolto il supporto ai moduli 4G e GPS.
