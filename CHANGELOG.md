@@ -4,6 +4,36 @@ Tutte le modifiche e le evoluzioni del firmware, delle app e dell'hardware di Om
 
 ---
 
+## [4.2.0] - 2026-10-04
+### iPhone
+- **Notifiche dell'iPhone sui display, senza app**: la centralina usa il servizio Apple ANCS. Si abbina una volta da *Impostazioni → Bluetooth → OmniRide* (poi *Consenti* le notifiche) e da lì arrivano chiamate con il nome, chiamate perse, WhatsApp, SMS/iMessage, Telegram, Signal e le indicazioni di Google Maps (svolta, distanza, via).
+- L'app Android e la web app funzionano come prima: un telefono Android non vede differenze.
+
+### Display
+- **Impostazioni più semplici**: all'apertura solo due pulsanti, MOTO e DISPLAY; ognuno apre il suo menu, con la barra "<" per tornare indietro.
+- **Orientamento**: scegli di quanto ruotare lo schermo (90, 180 o 270 gradi) invece di cambiarlo a ogni tocco.
+- Display rettangolare in orizzontale: "NAVIGAZIONE NON ATTIVA" ora è centrata sotto l'icona (prima finiva sul bordo destro).
+- Tolta la scritta "LIVE" con gli Hz in alto: resta solo l'avviso quando manca il segnale.
+
+### App
+- **Mappa del giro**: toccando un punto del percorso il popup mostra ora, velocità, piega, G e gas di quel punto (prima era vuoto).
+- **Pagina Moto più semplice**: in alto collegamento e cruscotto dal vivo, poi tre voci (Viaggio e manutenzione, Dove ho parcheggiato, 0-100); i controlli compaiono solo se c'è qualcosa da sistemare. Il nome della moto è in Altro > Moto e display.
+- **Pagina Altro a menu**: sei voci chiare (Moto e display, Calibrazione, Notifiche, Registrazione, Aggiornamenti, Aiuto); ognuna mostra solo le sue impostazioni, con "Torna al menu" o il tasto indietro.
+
+### 0-100 km/h
+- **Partenza riconosciuta sempre**: funziona anche con il sensore montato al contrario (la direzione si impara dalla prima prova riuscita), con partenze dolci di frizione e se dondoli la moto prima di partire.
+- Il tempo parte quando la moto comincia davvero a muoversi; si attiva più in fretta e non si disarma per i piccoli errori del GPS da fermo.
+- Provato su partenze simulate (pendenze, vibrazioni, dondolii, frizione dolce, sensore al contrario, GPS impreciso, senza telefono): errore entro circa 0,2 s.
+
+### Modulo 4G e GPS (facoltativi)
+- **SMS di soccorso inviato dalla moto** con un modulo 4G A7670E e una SIM: parte anche con iPhone o con il telefono spento o rotto. Posizione dal GPS del modulo, altrimenti l'ultima del telefono. Se annulli dopo l'invio parte il "falso allarme".
+- Con l'app Android collegata il telefono resta di riserva: niente SMS doppi, interviene solo se la moto non riesce a inviare (niente rete o SIM).
+- **Contatti SOS salvati nella centralina**: l'app li invia da sola a ogni collegamento; nella web app c'è la nuova scheda *SMS dalla moto* (utile con iPhone). SMS di prova dalla moto: web app, oppure tieni premuto *SMS di prova* nell'app.
+- **Modulo GPS** (ATGM336H, NEO-6M/M8N): velocità sui display e 0-100 anche senza telefono.
+- I moduli si collegano a GPIO 6 e 10 e vengono riconosciuti da soli; lo stato (rete, segnale, satelliti) è nella web app e nella diagnostica dell'app.
+
+---
+
 ## [4.1.2] - 2026-10-04
 ### Display
 - Pagina 0-100: l'avviso "solo in pista o area chiusa" e gli altri messaggi non escono più dai bordi. Il testo si adatta da solo: carattere grande, medio o su due righe.
