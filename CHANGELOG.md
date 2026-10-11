@@ -4,6 +4,19 @@ Tutte le modifiche e le evoluzioni del firmware, delle app e dell'hardware di Om
 
 ---
 
+## [4.4.0] - 2026-10-11
+### Gomme
+- **Sensori pressione gomme (TPMS Bluetooth)**: tappi sulle valvole letti dalla centralina, senza fili. Il display alterna la pressione alla riga della manutenzione e avvisa con un popup se una gomma scende sotto la pressione impostata (0,3 bar) o si sgonfia in fretta (foratura). Abbinamento e pressioni da mantenere in *Altro > Moto e display*; nella pagina Moto compare la scheda delle gomme solo se ci sono sensori abbinati.
+
+### Display
+- **Numeri e scritte più morbidi**: i caratteri grandi in grassetto (velocità, piega, tempi, titoli) ora hanno i bordi sfumati (antialiasing) invece dei gradini. Stesse dimensioni e posizioni di prima.
+
+### App
+- **Pagella del giro**: nella mappa del giro, punteggio di guida fluida, curve a destra e sinistra, le tre pieghe più forti, frenate in piega, gas chiuso di colpo in curva e un consiglio.
+- **Novità della versione** nella pagina Aggiornamenti: dopo *Controlla* l'app mostra cosa c'è di nuovo nell'ultima versione.
+
+---
+
 ## [4.3.0] - 2026-10-11
 ### Centralina
 - **Montaggio automatico: la centralina si installa in qualsiasi verso** (in piedi, sdraiata, girata, sotto la sella, nel codone o nel cupolino), basta che sia fissata rigida. Impara da sola come è montata mentre guidi: la verticale dalla media delle forze, l'avanti dal giroscopio in curva (una moto inclinata in curva ruota sempre con una parte verso la sua destra). Dopo qualche minuto di guida con un po' di curve piega, accelerazioni, bussola e 0-100 sono giusti senza toccare impostazioni.
