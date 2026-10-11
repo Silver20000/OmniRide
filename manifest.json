@@ -1,0 +1,22 @@
+{
+  "version": "4.5.1",
+  "date": "2026-10-11",
+  "boards": {
+    "master": {
+      "file": "omniride-master.bin",
+      "size": 1418832,
+      "md5": "1f94f2fe0de0b6865cd7e09e83ae2b10"
+    },
+    "round": {
+      "file": "omniride-round.bin",
+      "size": 1198240,
+      "md5": "e531734d81de0342e9fa71c7c0f0482a"
+    },
+    "rect": {
+      "file": "omniride-rect.bin",
+      "size": 1212160,
+      "md5": "25a5107abc8fea052eac24b0f02cd681"
+    }
+  },
+  "notes": "### Centralina\n- **Corretto: display che si scollegano o non si collegano.** Su molte schede ESP32-C3 SuperMini l'antenna lavora male alla potenza massima: misurato a 20 dBm, i display non ricevevano nessun pacchetto; da 15 dBm in giù li ricevono tutti. La radio verso i display ora trasmette a 15 dBm (11 dBm a batteria).\n- Diagnostica sulla porta seriale: pacchetti inviati e ricevuti ogni 10 secondi, pause del ciclo principale, comando `w` per provare le potenze di trasmissione.\n\n### Display\n- **Piega in tempo reale**: tolta l'inerzia con cui il display \"inseguiva\" l'angolo; i dati arrivano sempre 50 volte al secondo, anche a batteria.\n- **Barra della piega e archi con i bordi sfumati** e numero grande della piega sfumato, con l'\"1\" nella forma originale.\n- Sensore del gas scollegato: niente più 100% finto, la barra sparisce.\n- **Display più fluido**: segmenti e numeri sfumati più leggeri da disegnare, invio allo schermo più veloce (anche in modalità notte): da 18 a 28 fotogrammi al secondo sul rettangolare.\n- **Corretto: piega in ritardo e sbagliata dopo il montaggio automatico.** Il montaggio veniva \"imparato\" anche maneggiando la centralina a moto ferma; ora impara solo durante la guida vera (GPS oltre 15 km/h). Se la piega non torna, in *Calibrazione* tocca \"Riconosci di nuovo il montaggio\"."
+}
