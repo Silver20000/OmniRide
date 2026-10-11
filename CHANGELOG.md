@@ -4,9 +4,23 @@ Tutte le modifiche e le evoluzioni del firmware, delle app e dell'hardware di Om
 
 ---
 
+## [4.5.1] - 2026-10-11
+### Centralina
+- **Corretto: display che si scollegano o non si collegano.** Su molte schede ESP32-C3 SuperMini l'antenna lavora male alla potenza massima: misurato a 20 dBm, i display non ricevevano nessun pacchetto; da 15 dBm in giù li ricevono tutti. La radio verso i display ora trasmette a 15 dBm (11 dBm a batteria).
+- Diagnostica sulla porta seriale: pacchetti inviati e ricevuti ogni 10 secondi, pause del ciclo principale, comando `w` per provare le potenze di trasmissione.
+
+### Display
+- **Piega in tempo reale**: tolta l'inerzia con cui il display "inseguiva" l'angolo; i dati arrivano sempre 50 volte al secondo, anche a batteria.
+- **Barra della piega e archi con i bordi sfumati** e numero grande della piega sfumato, con l'"1" nella forma originale.
+- Sensore del gas scollegato: niente più 100% finto, la barra sparisce.
+- **Display più fluido**: segmenti e numeri sfumati più leggeri da disegnare, invio allo schermo più veloce (anche in modalità notte): da 18 a 28 fotogrammi al secondo sul rettangolare.
+- **Corretto: piega in ritardo e sbagliata dopo il montaggio automatico.** Il montaggio veniva "imparato" anche maneggiando la centralina a moto ferma; ora impara solo durante la guida vera (GPS oltre 15 km/h). Se la piega non torna, in *Calibrazione* tocca "Riconosci di nuovo il montaggio".
+
+---
+
 ## [4.5.0] - 2026-10-11
 ### Centralina
-- **A batteria, senza fili alla moto**: con una batteria al litio ricaricata via USB-C la centralina funziona da sola. A batteria va in risparmio energetico (processore a 80 MHz, Bluetooth e radio dei display a potenza ridotta, dati ai display a 25 Hz, radio in ascolto a intervalli), con la USB-C collegata va a piena potenza. Livello della batteria nell'app e sui display, avviso al 20% e al 10%.
+- **A batteria, senza fili alla moto**: con una batteria al litio ricaricata via USB-C la centralina funziona da sola. A batteria va in risparmio energetico (processore a 80 MHz, Bluetooth e radio dei display a potenza ridotta, radio in ascolto a intervalli), con la USB-C collegata va a piena potenza. Livello della batteria nell'app e sui display, avviso al 20% e al 10%.
 - Tolto il supporto ai moduli 4G e GPS.
 - Sensore del gas (TPS) solo sui prototipi: spento di serie, si attiva da *Altro > Modalità sviluppatore* (con password). Senza TPS la barra del gas non compare sui display. Spostato su GPIO 2: GPIO 7 sull'ESP32-C3 non legge tensioni.
 

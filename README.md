@@ -118,7 +118,7 @@ Da quel momento l'iPhone si ricollega da solo e sui display arrivano chiamate (c
 
 ### 🔋 A batteria, senza fili alla moto
 La centralina può funzionare con una sua batteria al litio, ricaricata con il cavo **USB-C** come un telefono: nessun collegamento all'impianto della moto.
-- **A batteria** entra da sola in **risparmio energetico**: processore più lento, radio a potenza ridotta, dati ai display 25 volte al secondo invece di 50. Pensata per almeno una giornata di guida (circa 8 ore con 800 mAh; da verificare sulla tua unità).
+- **A batteria** entra da sola in **risparmio energetico**: processore più lento, radio a potenza ridotta (i dati ai display restano a 50 al secondo, piega in tempo reale). Pensata per almeno una giornata di guida (circa 8 ore con 800 mAh; da verificare sulla tua unità).
 - **Con la USB-C collegata** va alla massima velocità.
 - Livello della batteria sull'app e sui display, avviso al 20% e al 10%.
 
