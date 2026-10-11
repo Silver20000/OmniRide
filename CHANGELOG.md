@@ -4,6 +4,47 @@ Tutte le modifiche e le evoluzioni del firmware, delle app e dell'hardware di Om
 
 ---
 
+## [4.3.0] - 2026-10-11
+### Centralina
+- **Montaggio automatico: la centralina si installa in qualsiasi verso** (in piedi, sdraiata, girata, sotto la sella, nel codone o nel cupolino), basta che sia fissata rigida. Impara da sola come è montata mentre guidi: la verticale dalla media delle forze, l'avanti dal giroscopio in curva (una moto inclinata in curva ruota sempre con una parte verso la sua destra). Dopo qualche minuto di guida con un po' di curve piega, accelerazioni, bussola e 0-100 sono giusti senza toccare impostazioni.
+- Provato su uscite simulate con montaggi casuali: direzione entro circa 5 gradi.
+- Contiene anche tutte le correzioni dalla 4.2.1 alla 4.2.7 (aggiornamenti più veloci e affidabili, stato del collegamento alla riapertura dell'app).
+
+### App
+- Calibrazione: stato del montaggio automatico e pulsante "Riconosci di nuovo il montaggio" (se sposti la centralina). Gli assi manuali valgono solo finché il montaggio non è riconosciuto.
+
+---
+
+## [4.2.7] - 2026-10-11
+### App
+- **Aggiornamento dei display di nuovo veloce**: la 4.2.6 lo aveva reso lentissimo togliendo anche il Bluetooth veloce. Ora il Bluetooth veloce è di nuovo attivo; resta solo la conferma per ogni pezzo, che lascia la radio libera per il display.
+
+---
+
+## [4.2.6] - 2026-10-11
+### App e centralina
+- **Aggiornamento dei display corretto**: si interrompeva dopo circa un minuto con "trasmissione al display interrotta". La centralina usa la stessa radio per il telefono e per i display, e l'invio veloce dal telefono la teneva occupata. Per i display l'app ora invia normalmente (il limite è comunque il collegamento col display); la centralina riprova più a lungo e, se fallisce, il messaggio dice il motivo. La centralina continua ad aggiornarsi in modo veloce. Aggiorna prima la centralina, poi i display.
+
+---
+
+## [4.2.5] - 2026-10-11
+### Centralina
+- **Aggiornamento dei display più affidabile**: si interrompeva spesso con un errore quando il display era lento a rispondere (stava scrivendo in memoria). Ora la centralina riconosce le risposte in ritardo, aspetta un po' di più e, se qualcosa va storto, sblocca subito il display (prima il tentativo successivo diceva "display non trovato"). Aggiorna prima la centralina, poi i display.
+
+---
+
+## [4.2.4] - 2026-10-11
+### App
+- **Corretto**: chiudendo e riaprendo l'app, la moto risultava "non collegata" anche se il collegamento in background era attivo (i dati arrivavano lo stesso). Ora la schermata mostra subito lo stato reale.
+
+---
+
+## [4.2.3] - 2026-10-11
+### App e centralina
+- **Aggiornamenti firmware più veloci**: l'app invia il firmware di seguito senza aspettare una conferma per ogni pezzo (una verifica ogni 8 kB) e la centralina sospende la telemetria durante il trasferimento. Alla fine l'app mostra quanti secondi ci ha messo. L'invio continuo vale dal secondo aggiornamento: la centralina deve già avere la 4.2.3.
+
+---
+
 ## [4.2.1] - 2026-10-11
 ### App
 - **Aggiornamenti di centralina e display più veloci**: durante il trasferimento l'app usa il Bluetooth alla massima velocità (intervallo corto e 2M), poi torna al collegamento a basso consumo.
