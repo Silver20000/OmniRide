@@ -4,6 +4,12 @@ Tutte le modifiche e le evoluzioni del firmware, delle app e dell'hardware di Om
 
 ---
 
+## [4.2.1] - 2026-10-11
+### App
+- **Aggiornamenti di centralina e display più veloci**: durante il trasferimento l'app usa il Bluetooth alla massima velocità (intervallo corto e 2M), poi torna al collegamento a basso consumo.
+
+---
+
 ## [4.2.0] - 2026-10-04
 ### iPhone
 - **Notifiche dell'iPhone sui display, senza app**: la centralina usa il servizio Apple ANCS. Si abbina una volta da *Impostazioni → Bluetooth → OmniRide* (poi *Consenti* le notifiche) e da lì arrivano chiamate con il nome, chiamate perse, WhatsApp, SMS/iMessage, Telegram, Signal e le indicazioni di Google Maps (svolta, distanza, via).
