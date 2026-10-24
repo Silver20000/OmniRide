@@ -4,6 +4,19 @@ Tutte le modifiche e le evoluzioni del firmware, delle app e dell'hardware di Om
 
 ---
 
+## [4.6.2] - 2026-10-24
+### App
+- **Modalità auto completa**: quando l'app si collega alla centralina auto (`CAPS:car=1`), tutta l'interfaccia passa in versione auto.
+  - La barra inferiore mostra la scheda "Auto" con icona dedicata, "Viaggi" al posto di "Giri", e la scheda SOS caduta viene nascosta.
+  - Funzionalità disponibili in auto: computer di viaggio (km, media e consumo dall'OBD), "Dove ho parcheggiato" con percorso per ritrovarla, registrazione viaggio con mappa colorata per velocità (senza piega), aggiornamento firmware via Bluetooth, lettura/cancellazione errori (DTC) e scansione centraline (UDS).
+  - Funzionalità moto rimosse in auto: angolo di piega, forze G, allarme caduta SOS, sensori TPMS, calibrazione del montaggio, 0-100 da IMU e inoltro notifiche/navigatore ai display.
+  - Alla disconnessione o collegandosi alla moto, l'app torna automaticamente alla modalità moto.
+
+### Auto (OBD Hub)
+- **Corretto: crash e riavvio all'avvio dell'hub OBD**: inizializzazione della memoria NVS come prima operazione e stack Bluetooth LE NimBLE pronto con server GATT per l'app prima dell'avvio della scansione dell'adattatore OBD2.
+
+---
+
 ## [4.6.1] - 2026-10-24
 ### App
 - **Corretto: l'app si collegava sempre alla moto.** Se vede più centraline (moto e auto) ora chiede a quale collegarsi; se ne vede una sola si collega da sola.
