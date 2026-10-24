@@ -4,6 +4,12 @@ Tutte le modifiche e le evoluzioni del firmware, delle app e dell'hardware di Om
 
 ---
 
+## [4.6.8] - 2026-10-24
+### Auto
+- **Aggiornamenti più veloci dalla centralina auto** (per lei e per i display): pacchetti grandi come sulla centralina moto (517 byte), collegamento rapido con il telefono durante l'aggiornamento, adattatore OBD2 in pausa finché l'aggiornamento non finisce (i tentativi di collegamento bloccavano la radio per secondi) e meno pacchetti ai display nel frattempo.
+
+---
+
 ## [4.6.7] - 2026-10-24
 ### Auto
 - **Più portata verso l'adattatore OBD2**: il Bluetooth della centralina auto trasmette alla massima potenza (+9 dBm), così l'adattatore sente meglio la richiesta di collegamento.
