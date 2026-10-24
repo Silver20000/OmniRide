@@ -4,6 +4,16 @@ Tutte le modifiche e le evoluzioni del firmware, delle app e dell'hardware di Om
 
 ---
 
+## [4.6.1] - 2026-10-24
+### App
+- **Corretto: l'app si collegava sempre alla moto.** Se vede più centraline (moto e auto) ora chiede a quale collegarsi; se ne vede una sola si collega da sola.
+- **Scansione centraline (auto)**: in *Impostazioni auto > Altro* legge gli errori di motore, cambio, ABS/ESP, airbag, quadro strumenti, gateway, servosterzo e clima, non solo quelli del motore. Tocca una centralina con errori per cancellarli.
+
+### Auto
+- Nuovi valori: **temperatura dell'olio** e **livello del carburante** (se l'auto li fornisce), sui display e nell'app.
+
+---
+
 ## [4.6.0] - 2026-10-24
 ### Auto (nuovo)
 - **OmniRide anche in auto**: una centralina OBD (ESP32-C3 o S3) si collega a un adattatore OBD2 Bluetooth LE e manda i dati ai display. Stesso firmware per tutti i display: con la centralina della moto mostrano le pagine moto, con quella OBD le pagine auto.
