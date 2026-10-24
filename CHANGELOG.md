@@ -4,6 +4,13 @@ Tutte le modifiche e le evoluzioni del firmware, delle app e dell'hardware di Om
 
 ---
 
+## [4.6.5] - 2026-10-24
+### Auto
+- **La centralina auto si aggiorna dall'app**, come quella della moto: collegati all'auto e vai in *Altro > Aggiornamento firmware*, compare "Centralina auto" insieme ai display. Ogni centralina accetta solo il proprio firmware.
+- Le centraline auto già programmate prima della 4.6.5 vanno riprogrammate una volta via cavo (nuova divisione della memoria per gli aggiornamenti); poi basta l'app. Le centraline nuove si programmano sempre via cavo la prima volta.
+
+---
+
 ## [4.6.4] - 2026-10-24
 ### Display
 - **Schermata di attesa**: finché non sentono una centralina (moto o auto) tutti i display mostrano "IN ATTESA di collegamento", con le sole impostazioni del display.
