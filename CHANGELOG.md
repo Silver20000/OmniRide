@@ -4,6 +4,16 @@ Tutte le modifiche e le evoluzioni del firmware, delle app e dell'hardware di Om
 
 ---
 
+## [4.6.3] - 2026-10-24
+### Auto
+- **Aggiornamento dei display dall'app anche in auto.** La centralina OBD ora elenca i display collegati e li aggiorna, come fa la centralina moto. I display con la 4.6.3 si fanno vedere dalla centralina auto; quelli con una versione precedente vanno aggiornati una volta da cavo.
+- La centralina auto non si può aggiornare dall'app (ha un firmware diverso da quello della moto): si aggiorna da cavo.
+
+### App
+- **Schermata iniziale più pulita**: finché non ti colleghi a una centralina vedi solo la scheda di connessione; voci e dati compaiono quando sei collegato.
+
+---
+
 ## [4.6.2] - 2026-10-24
 ### App
 - **Modalità auto completa**: quando l'app si collega alla centralina auto (`CAPS:car=1`), tutta l'interfaccia passa in versione auto.
