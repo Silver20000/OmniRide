@@ -4,6 +4,19 @@ Tutte le modifiche e le evoluzioni del firmware, delle app e dell'hardware di Om
 
 ---
 
+## [4.6.9] - 2026-10-24
+### Auto
+- **La centralina auto legge l'auto con gli adattatori vLinker (IOS-Vlink)**: l'adattatore riceveva i comandi ma le sue risposte non arrivavano mai (iscrizione alle notifiche senza conferma).
+- **Adattatore ritrovato anche per nome**: molti adattatori cambiano indirizzo Bluetooth quando li stacchi e riattacchi. Se quello salvato non si sente per un minuto, la centralina prende qualsiasi adattatore OBD2.
+- **Protocollo dell'auto**: se l'auto non risponde la centralina prova a turno i protocolli più comuni; quello che funziona viene ricordato e usato da allora in poi.
+- **Giri più rapidi**: l'adattatore risponde appena ha la prima risposta, i giri vengono letti 2 volte su 3, tempi di attesa adattivi.
+- Dopo 3 preparazioni dell'adattatore senza risposta la centralina si ricollega da capo; sulla porta seriale si vedono comandi e risposte.
+
+### Display
+- **Contagiri fluido**: lancetta e numero dei giri scorrono a ogni fotogramma verso l'ultimo valore letto; lo shift light usa il valore reale, senza ritardo.
+
+---
+
 ## [4.6.8] - 2026-10-24
 ### Auto
 - **Aggiornamenti più veloci dalla centralina auto** (per lei e per i display): pacchetti grandi come sulla centralina moto (517 byte), collegamento rapido con il telefono durante l'aggiornamento, adattatore OBD2 in pausa finché l'aggiornamento non finisce (i tentativi di collegamento bloccavano la radio per secondi) e meno pacchetti ai display nel frattempo.
