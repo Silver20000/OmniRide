@@ -4,6 +4,19 @@ Tutte le modifiche e le evoluzioni del firmware, delle app e dell'hardware di Om
 
 ---
 
+## [4.6.0] - 2026-10-24
+### Auto (nuovo)
+- **OmniRide anche in auto**: una centralina OBD (ESP32-C3 o S3) si collega a un adattatore OBD2 Bluetooth LE e manda i dati ai display. Stesso firmware per tutti i display: con la centralina della moto mostrano le pagine moto, con quella OBD le pagine auto.
+- **Cruscotto auto sui display**: contagiri con shift light, marcia (imparata da sola guidando), giri, velocità e una pagina con 6 riquadri a scelta (acqua, aria aspirata, acceleratore, carico motore, turbo, batteria, consumo).
+- Si mostrano solo i valori che la tua auto fornisce davvero.
+
+### App
+- **Scheda Auto**: valori in tempo reale e impostazioni (shift light, riquadri dei display), salvate nella centralina OBD.
+- **Errori del motore**: leggi gli errori memorizzati e quelli in attesa, cancellali (spegne la spia motore), leggi il numero di telaio.
+- **All'apertura** l'app chiede a quale centralina collegarsi se ne vede più di una (moto e auto); se ce n'è una sola si collega da sola.
+
+---
+
 ## [4.5.1] - 2026-10-11
 ### Centralina
 - **Corretto: display che si scollegano o non si collegano.** Su molte schede ESP32-C3 SuperMini l'antenna lavora male alla potenza massima: misurato a 20 dBm, i display non ricevevano nessun pacchetto; da 15 dBm in giù li ricevono tutti. La radio verso i display ora trasmette a 15 dBm (11 dBm a batteria).
