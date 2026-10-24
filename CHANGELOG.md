@@ -4,6 +4,16 @@ Tutte le modifiche e le evoluzioni del firmware, delle app e dell'hardware di Om
 
 ---
 
+## [4.6.7] - 2026-10-24
+### Auto
+- **Più portata verso l'adattatore OBD2**: il Bluetooth della centralina auto trasmette alla massima potenza (+9 dBm), così l'adattatore sente meglio la richiesta di collegamento.
+- **Nomi nell'elenco "Scegli l'adattatore a mano"**: la ricerca usa tutta la radio per quei secondi e raccoglie i nomi dei dispositivi (es. "IOS-Vlink"). I dispositivi che non trasmettono un nome restano con il solo codice.
+- Diagnostica sulla porta seriale della centralina: `l` elenca i dispositivi Bluetooth sentiti, `u<indirizzo>` sceglie l'adattatore.
+
+Nota: gli adattatori Bluetooth LE accettano un solo collegamento alla volta. Se un'app OBD sul telefono è collegata all'adattatore, la centralina non può collegarsi: chiudila.
+
+---
+
 ## [4.6.6] - 2026-10-24
 ### Auto
 - **Corretto: il telefono si scollegava e ricollegava dalla centralina auto.** Mentre la centralina prova a collegarsi all'adattatore OBD2 la radio resta occupata qualche secondo: ora il collegamento con il telefono tollera fino a 8 secondi di silenzio.
