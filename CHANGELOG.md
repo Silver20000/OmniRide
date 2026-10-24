@@ -4,6 +4,17 @@ Tutte le modifiche e le evoluzioni del firmware, delle app e dell'hardware di Om
 
 ---
 
+## [4.6.6] - 2026-10-24
+### Auto
+- **Corretto: il telefono si scollegava e ricollegava dalla centralina auto.** Mentre la centralina prova a collegarsi all'adattatore OBD2 la radio resta occupata qualche secondo: ora il collegamento con il telefono tollera fino a 8 secondi di silenzio.
+- Dopo un tentativo fallito con l'adattatore la centralina aspetta di più prima di riprovare (da 1 fino a 20 secondi), lasciando respirare telefono e display.
+- Un dispositivo trovato in automatico che non si collega per 3 volte viene ignorato per 5 minuti (spesso non è un adattatore OBD2). Per sceglierne uno preciso: *Impostazioni auto > Altro > Scegli l'adattatore a mano*.
+
+### App
+- Prima del collegamento l'app dice **"Collega la centralina"** (non sa ancora se è una moto o un'auto).
+
+---
+
 ## [4.6.5] - 2026-10-24
 ### Auto
 - **La centralina auto si aggiorna dall'app**, come quella della moto: collegati all'auto e vai in *Altro > Aggiornamento firmware*, compare "Centralina auto" insieme ai display. Ogni centralina accetta solo il proprio firmware.
