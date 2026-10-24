@@ -4,6 +4,25 @@ Tutte le modifiche e le evoluzioni del firmware, delle app e dell'hardware di Om
 
 ---
 
+## [4.6.4] - 2026-10-24
+### Display
+- **Schermata di attesa**: finché non sentono una centralina (moto o auto) tutti i display mostrano "IN ATTESA di collegamento", con le sole impostazioni del display.
+- **Collegati alla centralina auto**: compaiono subito le pagine e i menu auto, con "--" al posto dei valori; una riga piccola dice cosa sta facendo la centralina con l'adattatore OBD2.
+- **Benvenuto** senza nome della moto: solo "Benvenuto su OmniRide" e la versione.
+- Pagine da mostrare scelte dall'app (vedi sotto).
+- Corretto: in attesa c'erano due pagine uguali.
+
+### Auto
+- **Corretto: i display non sentivano la centralina auto.** A 15 dBm l'antenna della scheda ESP32-C3 li accecava: ora trasmette a 8,5 dBm, più che sufficienti in auto.
+- La centralina prova l'adattatore per al massimo 4 secondi alla volta, così i display non la perdono.
+
+### App
+- **Scegli l'adattatore a mano**: in *Impostazioni auto > Altro* la centralina elenca i dispositivi Bluetooth che sente (★ quelli che sembrano adattatori OBD2) e tu scegli il tuo.
+- **Valori nell'app**: l'elenco di tutti i valori che l'auto fornisce, con una spunta per scegliere quali vedere nella pagina principale.
+- **Schermate del display**: in moto e in auto scegli quali pagine mostrano i display; la centralina tiene la scelta e la passa a tutti i display.
+
+---
+
 ## [4.6.3] - 2026-10-24
 ### Auto
 - **Aggiornamento dei display dall'app anche in auto.** La centralina OBD ora elenca i display collegati e li aggiorna, come fa la centralina moto. I display con la 4.6.3 si fanno vedere dalla centralina auto; quelli con una versione precedente vanno aggiornati una volta da cavo.
