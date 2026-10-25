@@ -4,6 +4,14 @@ Tutte le modifiche e le evoluzioni del firmware, delle app e dell'hardware di Om
 
 ---
 
+## [4.7.1] - 2026-10-25
+### Display (auto)
+- **Stili del cruscotto**: Classico (contagiri ad arco), Racing (10 LED di cambiata, marcia gigante, giri in cifre) e Digitale (velocità grande, barra dei giri a segmenti, marcia nel riquadro). Si sceglie tenendo premuto il cruscotto per 1 secondo, oppure dall'app (*🏁 Stile del cruscotto*); la centralina auto lo tiene per tutti i display.
+- **Auto ibride**: quando l'auto si muove in elettrico (motore spento) al posto della marcia compare "EV" in verde.
+- Nuovo valore per i riquadri: **batteria ibrida %** (se l'auto la fornisce).
+
+---
+
 ## [4.7.0] - 2026-10-25
 ### App
 - **Parametri OBD (scansione)**: nuova pagina nel menu Auto con tutti i parametri OBD2 che l'auto fornisce, ognuno con il nome e il valore in tempo reale. Spunta quelli che vuoi vedere: compaiono nella pagina principale, sotto i valori soliti. "Scansiona di nuovo" richiede all'auto l'elenco aggiornato.
