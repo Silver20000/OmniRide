@@ -4,6 +4,13 @@ Tutte le modifiche e le evoluzioni del firmware, delle app e dell'hardware di Om
 
 ---
 
+## [4.7.2] - 2026-10-25
+### App
+- **Senza centralina collegata l'app mostra solo l'essenziale**: sotto OmniRide compare "Nessuna centralina collegata", la scheda SOS è nascosta e in *Altro* ci sono solo Aggiornamenti e Aiuto. Tutto il resto compare quando ti colleghi alla moto o all'auto.
+- Corretto: la scheda "Arma il cronometro" compariva nella pagina principale anche senza centralina.
+
+---
+
 ## [4.7.1] - 2026-10-25
 ### Display (auto)
 - **Stili del cruscotto**: Classico (contagiri ad arco), Racing (10 LED di cambiata, marcia gigante, giri in cifre) e Digitale (velocità grande, barra dei giri a segmenti, marcia nel riquadro). Si sceglie tenendo premuto il cruscotto per 1 secondo, oppure dall'app (*🏁 Stile del cruscotto*); la centralina auto lo tiene per tutti i display.
