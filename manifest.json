@@ -1,0 +1,27 @@
+{
+  "version": "4.7.2",
+  "date": "2026-10-25",
+  "boards": {
+    "master": {
+      "file": "omniride-master.bin",
+      "size": 1419344,
+      "md5": "2f886766ba5a3412694aaf688c58cc0f"
+    },
+    "round": {
+      "file": "omniride-round.bin",
+      "size": 1210576,
+      "md5": "df59daed4257bc3d5220b4cedb4ed32e"
+    },
+    "rect": {
+      "file": "omniride-rect.bin",
+      "size": 1224496,
+      "md5": "cbf8cd33205fbe725bbb0489be8c73a5"
+    },
+    "auto": {
+      "file": "omniride-auto.bin",
+      "size": 1254576,
+      "md5": "a36a972080e1bd0bb14e834a8cb54d6c"
+    }
+  },
+  "notes": "### App\n- **Senza centralina collegata l'app mostra solo l'essenziale**: sotto OmniRide compare \"Nessuna centralina collegata\", la scheda SOS è nascosta e in *Altro* ci sono solo Aggiornamenti e Aiuto. Tutto il resto compare quando ti colleghi alla moto o all'auto.\n- Corretto: la scheda \"Arma il cronometro\" compariva nella pagina principale anche senza centralina."
+}
