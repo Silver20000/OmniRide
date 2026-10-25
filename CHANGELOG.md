@@ -4,6 +4,17 @@ Tutte le modifiche e le evoluzioni del firmware, delle app e dell'hardware di Om
 
 ---
 
+## [4.7.0] - 2026-10-25
+### App
+- **Parametri OBD (scansione)**: nuova pagina nel menu Auto con tutti i parametri OBD2 che l'auto fornisce, ognuno con il nome e il valore in tempo reale. Spunta quelli che vuoi vedere: compaiono nella pagina principale, sotto i valori soliti. "Scansiona di nuovo" richiede all'auto l'elenco aggiornato.
+
+### Auto
+- **Marcia dall'auto**: se l'auto la fornisce (parametro OBD "marcia inserita"), la marcia arriva direttamente dall'auto; altrimenti resta quella imparata da giri e velocità.
+- **Collegamento all'adattatore più stabile**: tollera fino a 6 secondi di disturbo prima di considerarlo perso.
+- Se l'adattatore salvato non c'è, un altro dispositivo che non si collega viene ignorato dopo 3 tentativi.
+
+---
+
 ## [4.6.9] - 2026-10-24
 ### Auto
 - **La centralina auto legge l'auto con gli adattatori vLinker (IOS-Vlink)**: l'adattatore riceveva i comandi ma le sue risposte non arrivavano mai (iscrizione alle notifiche senza conferma).
