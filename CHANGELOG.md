@@ -4,6 +4,25 @@ Tutte le modifiche e le evoluzioni del firmware, delle app e dell'hardware di Om
 
 ---
 
+## [4.7.3] - 2026-11-15
+### Centralina moto
+- **Piega corretta nelle curve dolci e nei curvoni.** Il filtro scambiava la moto in marcia per una moto ferma (poca rotazione e circa 1 g valgono anche in rettilineo e nelle curve prese con calma): azzerava la piega e imparava un errore del giroscopio che non esisteva, facendo poi scappare l'angolo. Ora "ferma" vale solo se la moto lo è davvero (mai mentre il telefono dice che stai andando) e la correzione in marcia avviene solo quando la moto non sta curvando.
+- **Montaggio automatico solo su richiesta.** La centralina impara come è montata solo dopo "Riconosci di nuovo il montaggio" nell'app (da fare con la centralina già fissata sulla moto) e smette quando le curve l'hanno confermato. Prima imparava ogni volta che il telefono superava i 15 km/h, anche in auto o in tasca, e poteva memorizzare un montaggio sbagliato.
+- **0-100**: se il telefono è collegato, la prova non finisce più prima dei 100 km/h reali: quando l'accelerometro arriva a 100 ma il GPS è molto più indietro, il cronometro aspetta il GPS.
+
+### Display
+- **Cifre allineate**: nei numeri le cifre tonde (0, 3, 6, 8, 9) erano più alte delle altre, e nel numero grande della piega 4, 5 e 7 erano spostati in alto.
+- Contagiri auto più pronto: raggiunge il valore letto in 1-2 fotogrammi.
+
+### Auto
+- Giri letti più spesso (3 richieste su 4); nel log della centralina le letture al secondo.
+
+### App
+- Pagina *Altro*: si vede solo l'elenco delle sezioni, non tutte le schede insieme.
+- Stato del montaggio: "Posizione standard" quando l'apprendimento non è attivo.
+
+---
+
 ## [4.7.2] - 2026-10-25
 ### App
 - **Senza centralina collegata l'app mostra solo l'essenziale**: sotto OmniRide compare "Nessuna centralina collegata", la scheda SOS è nascosta e in *Altro* ci sono solo Aggiornamenti e Aiuto. Tutto il resto compare quando ti colleghi alla moto o all'auto.
