@@ -4,6 +4,15 @@ Tutte le modifiche e le evoluzioni del firmware, delle app e dell'hardware di Om
 
 ---
 
+## [4.7.4] - 2026-11-16
+### Auto
+- **Velocità fluida**: la velocità ha un turno fisso (1 richiesta su 4, i giri 2) e arriva circa 3-4 volte al secondo, invece di ogni 1-2 secondi.
+- **Valori che non spariscono più**: acceleratore, carico, turbo e consumo restano validi 8-10 s, quindi non compaiono e scompaiono a caso né sul display né nell'app.
+- **Taratura manuale delle marce**: sul display, pressione lunga sul contagiri → "TARA MARCE"; in marcia a velocità costante si tocca per registrare e si passa alla marcia dopo. Anche dall'app (Altro → Taratura marce). Con la taratura la centralina usa solo i valori registrati.
+- La marcia cambia solo dopo 300 ms stabili (niente sfarfallio nelle cambiate).
+
+---
+
 ## [4.7.3] - 2026-11-15
 ### Centralina moto
 - **Piega corretta nelle curve dolci e nei curvoni.** Il filtro scambiava la moto in marcia per una moto ferma (poca rotazione e circa 1 g valgono anche in rettilineo e nelle curve prese con calma): azzerava la piega e imparava un errore del giroscopio che non esisteva, facendo poi scappare l'angolo. Ora "ferma" vale solo se la moto lo è davvero (mai mentre il telefono dice che stai andando) e la correzione in marcia avviene solo quando la moto non sta curvando.
