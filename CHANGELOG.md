@@ -4,6 +4,12 @@ Tutte le modifiche e le evoluzioni del firmware, delle app e dell'hardware di Om
 
 ---
 
+## [4.7.5] - 2026-11-16
+### Display
+- I display accettano i pacchetti della centralina auto anche se più lunghi: una centralina più nuova non li rende più "sordi" (dopo la 4.7.4 un display non aggiornato non vedeva più la centralina).
+
+---
+
 ## [4.7.4] - 2026-11-16
 ### Auto
 - **Velocità fluida**: la velocità ha un turno fisso (1 richiesta su 4, i giri 2) e arriva circa 3-4 volte al secondo, invece di ogni 1-2 secondi.
