@@ -1,0 +1,27 @@
+{
+  "version": "4.7.5",
+  "date": "2026-11-16",
+  "boards": {
+    "master": {
+      "file": "omniride-master.bin",
+      "size": 1420928,
+      "md5": "284b0591ad252b405981c98b81029040"
+    },
+    "round": {
+      "file": "omniride-round.bin",
+      "size": 1211632,
+      "md5": "2fd726d32101013f69f5b5c774b98829"
+    },
+    "rect": {
+      "file": "omniride-rect.bin",
+      "size": 1225552,
+      "md5": "2e001d3f06bee8f465ecb331e9f70451"
+    },
+    "auto": {
+      "file": "omniride-auto.bin",
+      "size": 1256336,
+      "md5": "79772e9df20d39ba7eb3154dedf79c12"
+    }
+  },
+  "notes": "### Display\n- I display accettano i pacchetti della centralina auto anche se più lunghi: una centralina più nuova non li rende più \"sordi\" (dopo la 4.7.4 un display non aggiornato non vedeva più la centralina)."
+}
